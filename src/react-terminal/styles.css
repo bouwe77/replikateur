@@ -1,6 +1,15 @@
+/* styles.css */
+html,
 body {
-  background-color: Black;
+  margin: 0;
+  padding: 0;
+  background-color: black;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
   font-family: monospace;
-  color: White;
+  color: white;
   font-size: 12pt;
 }

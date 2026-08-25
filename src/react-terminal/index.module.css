@@ -1,0 +1,89 @@
+/* index.module.css */
+.terminal {
+  background-color: black;
+  min-height: 100vh;
+  width: 100vw;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  color: white;
+}
+
+.historyItem {
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.historyRow {
+  display: flex;
+  align-items: center;
+}
+
+.historyPrompt {
+  margin-right: 8px;
+  color: white;
+  white-space: pre;
+}
+
+.historyInput {
+  color: white;
+  word-break: break-all;
+}
+
+.historyResponse {
+  margin-top: 2px;
+  margin-bottom: 12px;
+  color: #cccccc;
+  white-space: pre-wrap;
+}
+
+.inputForm {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.prompt {
+  color: white;
+  margin-right: 8px;
+  white-space: pre;
+}
+
+.cursor {
+  border: 0;
+  background-color: transparent;
+  color: white;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  width: 100%;
+  flex-grow: 1;
+  margin: 0;
+  padding: 0;
+  caret-color: white;
+  outline: none;
+}
+
+.cursor:focus {
+  outline: none;
+}
+
+.helpContainer {
+  margin: 10px 0;
+  color: #00ff00;
+}
+
+.helpExample {
+  color: white;
+}
+
+.scrollAnchor {
+  float: left;
+  clear: both;
+}
