@@ -17,9 +17,8 @@
     "dist"
   ],
   "scripts": {
-    "dev": "vite",
+    "dev": "./create-app-for-quick-testing.sh",
     "build": "tsc && vite build",
-    "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "coverage": "vitest run --coverage"

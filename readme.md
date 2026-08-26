@@ -47,16 +47,6 @@ Install the dependencies once:
 npm install
 ```
 
-### Run the demo app
-
-```bash
-npm run dev
-```
-
-This starts the demo app in `index.html` and `src/main.tsx`. It imports the
-library straight from the source, so changes show up immediately through HMR.
-Its commands are defined in `src/commands.ts`.
-
 ### Run the tests
 
 ```bash
@@ -82,13 +72,13 @@ This type checks the project and builds the library into `dist`:
 React is not bundled. It is a peer dependency, so the app that uses the library
 brings its own copy.
 
-## Quick testing against the build
+## The demo app
 
-The demo app uses the source. To check what people actually get when they
-install the library, use the quick test app:
+There is one demo app, and it is generated. It runs against `dist`, so what you
+try out is what people actually get when they install the library.
 
 ```bash
-./create-app-for-quick-testing.sh
+npm run dev   # or ./create-app-for-quick-testing.sh, the same thing
 ```
 
 The script:
@@ -98,15 +88,18 @@ The script:
    app that imports `Terminal` and the styles from `dist`.
 3. Starts that app on http://localhost:5173.
 
-Try `help`, `clear`, and the commands in `app-for-quick-testing/commands.js`.
+Try `help`, `clear`, and the commands in `app-for-quick-testing/commands.jsx`.
 
-The folder is generated, so do not edit it: every run wipes it. It is in
-`.gitignore` and has no dependencies of its own. Vite, React and the React
+The folder is generated, so do not edit it: every run wipes it. Add an example
+by editing the heredoc in `create-app-for-quick-testing.sh` instead. The folder
+is in `.gitignore` and has no dependencies of its own. Vite, React and the React
 plugin are resolved from the `node_modules` of this repo, so there is nothing
 to install and there is only one copy of React.
 
 Run the script again after every library change, because the app uses the build
-and not the source.
+and not the source. There is no HMR against the source: that needs a second demo
+app, and keeping two of them in step turned out to cost more than the rebuild
+does.
 
 ## Publish to npm
 

@@ -37,7 +37,7 @@ import React, { useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { Terminal } from '../dist/kanza.js'
 import '../dist/$css'
-import commands from './commands.js'
+import commands from './commands.jsx'
 
 
 // A nested REPL, built entirely from the outside: swap the commands and the
@@ -87,7 +87,58 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 EOF
 
 # Create a few commands to try out, next to the built in "help" and "clear"
-cat > commands.js <<'EOF'
+cat > commands.jsx <<'EOF'
+import { useEffect, useState } from 'react'
+
+const FLAVOURS = ['Chocolate', 'Strawberry', 'Blueberry', 'Snozzberry']
+
+const KEYS = ['ArrowDown', 'ArrowUp', 'Enter', 'q', 'Escape']
+
+// Written by hand, on purpose. A screen is a plain React component: it knows
+// nothing about the terminal, it only gets an onExit from whoever opened it.
+// It listens on the window because the prompt is gone while it is open, so
+// there is nothing left to fight over the keyboard with.
+const Menu = ({ onExit }) => {
+  const [selected, setSelected] = useState(0)
+  const [picked, setPicked] = useState(null)
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const last = FLAVOURS.length - 1
+
+      // A key this screen uses is its own, so the browser must not also act on
+      // it. Without this the arrows scroll the page, and the "q" that closes
+      // the screen is typed into the prompt that comes back underneath it.
+      if (!KEYS.includes(e.key)) return
+      e.preventDefault()
+
+      if (e.key === 'ArrowDown') setSelected((i) => (i === last ? 0 : i + 1))
+      if (e.key === 'ArrowUp') setSelected((i) => (i === 0 ? last : i - 1))
+      if (e.key === 'Enter') setPicked(FLAVOURS[selected])
+      if (e.key === 'q' || e.key === 'Escape') onExit()
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selected, onExit])
+
+  return (
+    <div style={{ whiteSpace: 'pre' }}>
+      Pick a flavour. Arrows to move, Enter to pick, q to leave.
+      <br />
+      <br />
+      {FLAVOURS.map((flavour, index) => (
+        <div key={flavour}>
+          {index === selected ? '> ' : '  '}
+          {flavour}
+        </div>
+      ))}
+      <br />
+      {picked ? `You picked ${picked}.` : ' '}
+    </div>
+  )
+}
+
 const commands = {
   hello: {
     handle: () => 'Hello to you too :)',
@@ -150,6 +201,16 @@ const commands = {
     help: {
       example: 'wait 3',
       description: 'Wait a number of seconds, then answer',
+    },
+  },
+
+  // A screen: the terminal shows something else until you leave it, and the
+  // history is waiting for you when you get back.
+  menu: {
+    handle: ({ screen }) => screen.open(<Menu onExit={screen.close} />),
+    help: {
+      example: 'menu',
+      description: 'Open a screen you can move around in',
     },
   },
 
