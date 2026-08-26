@@ -75,11 +75,11 @@
 
 .helpContainer {
   margin: 10px 0;
-  color: #00ff00;
+  color: white;
 }
 
 .helpExample {
-  color: white;
+  color: #00ff00;
 }
 
 .scrollAnchor {
