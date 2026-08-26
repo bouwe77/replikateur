@@ -17,7 +17,7 @@
     "dist"
   ],
   "scripts": {
-    "dev": "npm run build && vite serve demo",
+    "dev": "./dev.sh",
     "build": "tsc && vite build",
     "test": "vitest",
     "test:ui": "vitest --ui",

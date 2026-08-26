@@ -426,7 +426,7 @@ The demo app lives in `demo` and runs against `dist`, so what you try out is
 what people actually get when they install the library.
 
 ```bash
-npm run dev
+./dev.sh   # or npm run dev, the same thing
 ```
 
 That builds the library and starts the app on http://localhost:5173. Try `help`,
