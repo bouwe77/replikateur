@@ -34,9 +34,13 @@
       `Cancelled` wordt, en zonder draaiend command helemaal niets.
 - [ ] Tab autocomplete op commandonamen. Alles is er al: de namen zijn de keys van
       `commands`, en `CommandInput` handelt ArrowUp/ArrowDown al af.
-      UX-overzicht van alle gevallen en de voorgestelde scope staat in
-      `tab-completion.md`. Kort: alleen commandonamen bouwen, lijst in plaats van
-      cyclen, waardes (`--city <Tab>`) buiten scope tot een command het nodig heeft.
+      Scope: alleen commandonamen, een lijst in plaats van cyclen, alleen als de
+      cursor aan het eind staat, en altijd `preventDefault` op Tab, ook als er
+      niets te completen is, anders gaat de focus uit de terminal weg. Die lijst
+      wordt een history item dat ArrowUp niet terughaalt, net als de `^C` regel
+      (`isInterrupt`). Flags (`add --na<Tab>`) daarna beoordelen. Waardes
+      (`--city <Tab>`) buiten scope: alleen het command kent de waardes, dus dat
+      vraagt publieke API en dat is het enige deel dat duur is om terug te draaien.
 - [x] `help <command>` voor één command, nu help langer wordt door de flags per command.
 - [x] BUG: de prompt in de history volgt de huidige `prompt` prop in plaats van die
       van het moment dat het command draaide. Verander je `prompt`, dan veranderen
@@ -56,7 +60,7 @@
 - [x] TUIs? 😱 Algemener gemaakt naar "screens": een command kan tijdelijk iets
       anders in de terminal zetten, en sluiten brengt je terug bij de prompt. Wat
       je daar rendert maakt de library niet uit, een TUI is er maar één ding van.
-      De API staat in `README.md`, de afwegingen in commit f52510d.
+      De API staat in de readme, de afwegingen in commit f52510d.
       Gebouwd: `handle` krijgt er een `screen` bij met `open` en `close`. Staat er
       een screen open, dan renderen de history en de `CommandInput` niet. Die
       input moest weg, niet alleen verstopt: hij heeft focus en pakt anders de

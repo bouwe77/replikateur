@@ -205,6 +205,13 @@ const buildShortForms = (definitions: CommandFlagDefinitions) => {
   const longToShort: Record<string, string> = {}
   const taken = new Set<string>()
 
+  // A conflict means no short form is safe to hand out, so both maps stay empty.
+  const conflict = (message: string) => ({
+    longToShort: {} as Record<string, string>,
+    shortToLong: {} as Record<string, string>,
+    conflict: `kanza: ${message}`,
+  })
+
   for (const [long, definition] of Object.entries(definitions)) {
     if (!definition.short) continue
 
@@ -213,13 +220,10 @@ const buildShortForms = (definitions: CommandFlagDefinitions) => {
         (name) => longToShort[name] === definition.short,
       )
 
-      return {
-        longToShort: {},
-        shortToLong: {},
-        conflict:
-          `kanza: --${other} and --${long} both use -${definition.short}. ` +
+      return conflict(
+        `--${other} and --${long} both use -${definition.short}. ` +
           'A short form belongs to one flag.',
-      }
+      )
     }
 
     longToShort[long] = definition.short
@@ -246,13 +250,10 @@ const buildShortForms = (definitions: CommandFlagDefinitions) => {
         ? names.join(' and ')
         : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`
 
-    return {
-      longToShort: {},
-      shortToLong: {},
-      conflict:
-        `kanza: ${listed} ${names.length === 2 ? 'both' : 'all'} want -${letter}. ` +
+    return conflict(
+      `${listed} ${names.length === 2 ? 'both' : 'all'} want -${letter}. ` +
         'Neither gets a short form. Set `short` on one.',
-    }
+    )
   }
 
   const shortToLong: Record<string, string> = {}
@@ -373,6 +374,19 @@ const Pending = ({ classes }: { classes?: TerminalClasses }) => (
     <span>.</span>
   </span>
 )
+
+// The built ins are handled here rather than declared, so they exist only so that
+// "help" can list them. A command of your own with the same name replaces them.
+const BUILT_IN_HELP: Commands = {
+  clear: {
+    help: { example: 'clear', description: 'Clear the screen' },
+    handle: () => {},
+  },
+  help: {
+    help: { example: 'help [command]', description: 'Show this help' },
+    handle: () => {},
+  },
+}
 
 const isPromise = (value: CommandResponse): value is Promise<ReactNode> =>
   value != null && typeof (value as Promise<ReactNode>).then === 'function'
@@ -647,17 +661,7 @@ export const Terminal = ({
     if (commandName === 'clear') return { response: null, isClear: true }
 
     if (commandName === 'help') {
-      const virtualCommands: Commands = {
-        clear: {
-          help: { example: 'clear', description: 'Clear the screen' },
-          handle: () => {},
-        },
-        help: {
-          help: { example: 'help [command]', description: 'Show this help' },
-          handle: () => {},
-        },
-        ...commands,
-      }
+      const virtualCommands: Commands = { ...BUILT_IN_HELP, ...commands }
 
       if (!input) {
         return {

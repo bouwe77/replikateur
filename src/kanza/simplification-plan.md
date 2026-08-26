@@ -1,12 +1,14 @@
 # Plan: cut complexity
 
-A review of the whole library for over-engineering, grouped by priority. The
-Must items are done; the rest is not.
+A review of the whole library for over-engineering, grouped by priority. Must
+and Should are done, apart from one item that was tried and dropped. Could is
+still open.
 
-Estimated total: about 660 lines less, of which 52 are gone.
+Estimated total: about 660 lines less. Must and Should together removed 417
+lines net, so Could is what is left.
 
-The line numbers in Should and Could point at `terminal.tsx` as it was before
-the Must items, so they sit about 50 lines lower now.
+The line numbers in Could point at `terminal.tsx` as it was before any of this,
+so they sit about 50 lines lower now.
 
 ## Must — pure deletions, no API change
 
@@ -44,27 +46,38 @@ at the end after writing `input.value`. Both need one click in a real browser.
 
 ## Should
 
-About 467 lines, most of it documentation and the dev script.
+Done, except one item that was not worth its price (see below). About 400 lines
+gone: the generated-app script (265) and the tab completion design (115) are
+deleted, the two readmes became one (494 to 450), and the demo app is 206 lines
+of real, editable files instead of heredocs.
 
-- [ ] **`create-app-for-quick-testing.sh` L19-261.** 240 lines of heredocs that
+- [x] **`create-app-for-quick-testing.sh` L19-261.** 240 lines of heredocs that
       generate `index.html`, `main.jsx`, `commands.jsx` and `vite.config.js`.
       The last change turned three real files into strings inside bash: no
       highlighting, no typecheck, no prettier, and no editing the demo while you
-      use it. Commit a real `demo/` folder instead, so the script becomes
-      `npm run build && cd demo && npm run dev`.
-- [ ] **`tab-completion.md`.** 113 lines of design for a feature whose own
+      use it. The script is gone: `demo/` is committed, and `npm run dev` is
+      `npm run build && vite serve demo`.
+- [x] **`tab-completion.md`.** 113 lines of design for a feature whose own
       "Recommended scope" section is about 30 lines of code, while `TODO.md`
       L35-39 already summarises it. Keep the scope list, drop the file.
-- [ ] **`readme.md` and `src/kanza/README.md`.** Two hand-written READMEs, 494
-      lines together, documenting the same API. Keep one, make the other a link.
-- [ ] **`terminal.tsx` L263-275.** 13 lines of English list grammar (`both` vs
-      `all`, comma-then-"and" joining) for a message that only ever goes to the
-      console for a developer. Use `names.join(', ')`.
-- [ ] **`terminal.tsx` L236-241, 269-276.** `buildShortForms` returns
-      `{ longToShort: {}, shortToLong: {}, conflict }` in two places. Return
-      `{ conflict }` alone and let `resolveFlags` bail out before it reads the
-      maps.
-- [ ] **`terminal.tsx` L700-711.** `virtualCommands`, with two
+- [x] **`readme.md` and `src/kanza/README.md`.** Two hand-written READMEs, 494
+      lines together, documenting the same API. The root one is what npm and
+      GitHub show, so the API docs moved there and `src/kanza/README.md` is
+      deleted. A stub pointing at the other file is the kind of thing this pass
+      removes.
+- [ ] **`terminal.tsx` L263-275, the list grammar. Not done, on purpose.** Tried
+      it: `names.join(', ')` turns
+      `--name and --number both want -n` into `--name, --number want -n`. That
+      string is in the readme and asserted by two tests, and it goes in the
+      terminal where a user sees it, not only to the console. Six lines is not
+      worth a worse message plus the doc and test churn. Reopen only if the
+      message changes for another reason anyway.
+- [x] **`terminal.tsx` L236-241, 269-276.** `buildShortForms` returned
+      `{ longToShort: {}, shortToLong: {}, conflict }` in two places. Now one
+      `conflict()` helper builds that shape. It keeps returning the empty maps,
+      because `Help` calls `buildShortForms` and ignores `conflict`, so filling
+      them would show short forms for a command that refuses to run.
+- [x] **`terminal.tsx` L700-711.** `virtualCommands`, with two
       `handle: () => {}` stubs, is rebuilt on every `help`. Module-level const.
 
 ## Could — worth a decision first
@@ -93,7 +106,7 @@ before cutting.
       `terminal.test.tsx` imports only `Terminal`. Drop the keyword and fix the
       comment.
 - [ ] **`terminal.module.css` L85-88.** `.scrollAnchor { float: left; clear:
-    both }` on an empty div in a flex column. Float does nothing there.
+both }` on an empty div in a flex column. Float does nothing there.
 - [ ] **`terminal.module.css` L1, L72-74.** A header comment naming a file that
       does not exist, and `.cursor:focus { outline: none }` repeating what
       `.cursor` already sets.
