@@ -80,43 +80,87 @@ of real, editable files instead of heredocs.
 - [x] **`terminal.tsx` L700-711.** `virtualCommands`, with two
       `handle: () => {}` stubs, is rebuilt on every `help`. Module-level const.
 
-## Could — worth a decision first
+## Could — decided one by one
 
-About 120 lines. These touch public API or a deliberate choice, so decide
-before cutting.
+All nine were discussed separately. Three were done, six were kept on purpose,
+and in three of those the plan's own premise turned out to be wrong. That is the
+useful result of this section: the cheap wins were in Must and Should, and what
+is left here is mostly load-bearing.
 
-- [ ] **`classes` prop.** `` `${styles.x} ${classes?.x || ''}` `` is written 16
-      times, most of them wrapped over 3-5 lines by prettier. A helper
-      `const cx = (k: keyof TerminalClasses) => …` saves about 25 lines. The
-      bigger question: does `TerminalClasses` need all 17 keys? It has been
-      public since 0.0.5, so this is the last cheap moment to ask.
-- [ ] **L310-341 `commandProblems`.** Checks at runtime what the `Commands`
-      type already forbids: empty name, space in the name, missing `handle`.
-      Only the `short`-is-one-letter check is invisible to TypeScript. Keep the
-      rest only if JavaScript users are a target, and say so in a comment.
-- [ ] **L249-276 automatic short-form conflicts.** Two flags starting with the
-      same letter block the whole command. First-come-wins would delete about 25
-      lines and 2 tests. This was a deliberate choice, so only cut it if the
-      strictness has never caught a real mistake.
-- [ ] **L503-602 uncontrolled input.** The input is driven by writing `.value`
-      in six places. One `useState` plus `value`/`onChange` removes the ref, the
-      null checks and both cursor helpers. A bigger diff, but a smaller file.
-- [ ] **L408, 457, 503 exports.** `HistoryList`, `Help` and `CommandInput` are
-      exported. `index.ts` says this is "so the tests can reach it", but
-      `terminal.test.tsx` imports only `Terminal`. Drop the keyword and fix the
-      comment.
-- [ ] **`terminal.module.css` L85-88.** `.scrollAnchor { float: left; clear:
-both }` on an empty div in a flex column. Float does nothing there.
-- [ ] **`terminal.module.css` L1, L72-74.** A header comment naming a file that
-      does not exist, and `.cursor:focus { outline: none }` repeating what
-      `.cursor` already sets.
-- [ ] **`tsconfig.node.json`.** A whole composite project plus a `references`
-      entry so `tsc` can see one file. Use
-      `"include": ["src", "vite.config.ts"]` in `tsconfig.json`.
-- [ ] **`publish.sh` L14-15.** `npm install` on every publish. The comment
-      already calls it optional.
+Done:
 
-## Won't
+- [x] **1a. `classes`, the repetition.** A `classNames(classes)` factory, bound
+      once per component, so each site reads `cx('prompt')`. 777 to 757 lines.
+- [x] **5. `export` on the internal components.** `HistoryList`, `Help` and
+      `CommandInput` are no longer exported, and `index.ts` no longer claims
+      they are exported for the tests. Checked first: `dist/kanza.d.ts` never
+      contained them, and the test file imports only `Terminal`, `Commands` and
+      `CommandHandlerArgs`.
+- [x] **6 + 7. Three dead CSS rules.** `.scrollAnchor` kept its class but lost
+      `float: left; clear: both`, which flexbox ignores on a flex item. The
+      header comment naming a file that does not exist is gone, and so is
+      `.cursor:focus { outline: none }`, which repeats what `.cursor` already
+      sets in every state. The empty `.scrollAnchor` rule is dropped from
+      `dist/kanza.css` by the build, but the class name mapping survives in the
+      JS, so the public `classes.scrollAnchor` key still works.
 
-`terminal.test.tsx`, 1283 lines and 83 tests. A published library earns them,
-and correctness checks are out of scope for this pass.
+Kept on purpose:
+
+- [ ] **1b. The 17 `TerminalClasses` keys.** Public since 0.0.5 and documented
+      as the whole styling story. Once `cx` exists, cutting keys saves no code,
+      only type surface, and breaks anyone styling that part today.
+- [ ] **2. `commandProblems`. The premise was wrong.** Of its six checks
+      TypeScript catches two: a space in the name, and a missing `handle`. An
+      empty name, a name starting with a dash, an untypeable flag name and a
+      `short` that is not one letter are all invisible to it, and even those two
+      only bite when the object is annotated or inline. Build commands
+      dynamically and TypeScript sees nothing, which is exactly where these
+      mistakes come from. It is a real diagnostic, with tests and a readme
+      section, not duplicated validation.
+- [ ] **3. Automatic short-form conflicts.** First-come-wins would save about 20
+      lines but replaces a loud error with a silent wrong value: `add -n Bob`
+      would set `name` instead of `number`, decided by key order in the object
+      literal. A middle option was considered and dropped too: keep the
+      detection, drop the refusal, and only `console.error` it.
+- [ ] **4. The uncontrolled input.** The Must items already took this from six
+      `.value` touches to four, so going controlled is now a wash in lines. It
+      would also mean keeping a ref anyway, because tab completion needs
+      `selectionStart`, which only exists on the element. Revisit if tab
+      completion wants the line in state.
+- [ ] **8. `tsconfig.node.json`.** Left as it is. Worth knowing what was found:
+      a `references` entry is only followed by `tsc -b`, and `npm run build`
+      runs plain `tsc`, so `vite.config.ts` is not typechecked at all today, and
+      that second config could not do it anyway (no `skipLibCheck`, no `lib`, no
+      `target`, and `moduleResolution: "Node"` cannot read the types of
+      `@vitejs/plugin-react`). The plan's one-line fix does not work for the same
+      reason. What did work, verified and then reverted: the `bundler`
+      resolution setting, a single `include: ["src", "vite.config.ts"]`, and
+      `entry: 'src/kanza/index.ts'` instead of `resolve(__dirname, …)`. That is
+      -11 lines with `tsc` silent, the build fine, the tests passing and `dist`
+      identical. Reopen from here if the config ever needs to be trusted.
+      Loose end: `tsconfig.node.tsbuildinfo` is untracked in the repo root and
+      nothing regenerates it.
+- [ ] **9. `npm install` in `publish.sh`.** Kept, and the comment no longer
+      calls itself optional. It is a release script: a second of install
+      prevents a publish that builds against stale dependencies, and a bad
+      release cannot be taken back, because the version is bumped, the tag is
+      pushed and npm refuses to republish a version. `npm ci` would be a
+      stronger check but reinstalls from scratch every time.
+
+## Where this ended up
+
+| Pass   | Result                                                                                                                                  |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Must   | 10 of 10 done. `terminal.tsx` 825 to 773.                                                                                               |
+| Should | 5 of 6 done, about 400 lines gone. The list grammar was tried and dropped: it is a user-facing message, in the readme and in two tests. |
+| Could  | 3 of 9 done. Six kept, three of those because the finding itself was wrong.                                                             |
+
+`terminal.tsx` is 757 lines, from 825. The two readmes are one file of 450, from 494. The 265-line generator script and the 115-line design document are gone,
+and the demo app is 206 lines you can actually edit. 83 tests pass throughout,
+with `tsc` and prettier clean.
+
+The lesson for the next pass: a line count is a hypothesis. Three of the nine
+Could items were real code smells whose replacement would have been worse, and
+one (`commandProblems`) rested on a claim about TypeScript that was simply
+false. Checking cost minutes; not checking would have cost a diagnostic, a loud
+error and a public API key.
