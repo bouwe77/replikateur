@@ -74,7 +74,7 @@ const App = () => {
     <Terminal
       commands={inOompa ? oompa : shell}
       prompt={inOompa ? 'oompa>' : '$'}
-      welcome={'Welcome! Type "help" to see what it can do here.'}
+      welcome={'Welcome! Type "help" to see what you can do here.'}
     />
   )
 }
