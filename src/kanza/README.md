@@ -172,6 +172,43 @@ oompa> exit
 >
 ```
 
+## Screens
+
+A command can put something else in the terminal for a while. The history and the
+prompt step aside, and closing brings them back exactly as they were. This is the
+alternate screen a real terminal switches to for `vim` or `less`.
+
+Every handler gets a `screen` with `open` and `close`. You decide how your
+component gets its way out, so it stays a plain React component that knows nothing
+about Kanza.
+
+```jsx
+const commands = {
+  edit: {
+    handle: ({ screen }) => screen.open(<Editor onExit={screen.close} />),
+  },
+}
+```
+
+Kanza only owns the screen itself: it fills the terminal, so your component
+inherits the font and the colours, and the prompt is not rendered, so it cannot
+take the keys or the focus your component is waiting for. Everything inside is
+yours. Kanza does not care whether it is a text interface, a form or a game.
+
+While a screen is open, Kanza listens for nothing, not even Ctrl+C. If what you
+render has no way out, you are stuck, the same as in a real terminal.
+
+A few smaller things:
+
+- Only one screen at a time. Opening another one replaces it, and closing always
+  lands you back at the prompt.
+- `open` returns nothing, so the line gets no response. The command is still
+  echoed, so after closing you see `> edit` above where you left off.
+- A handler may open a screen _and_ return something. The response waits for you
+  in the history.
+- An async handler can open a screen once it resolves.
+- `close` with no screen open does nothing.
+
 ## Failing
 
 A command fails by throwing, and succeeds by returning. That is the only
@@ -330,6 +367,7 @@ override any part of it:
 | `pending`                                          | The marker of a running command  |
 | `welcome`                                          | The welcome message              |
 | `scrollAnchor`                                     | The element it scrolls to        |
+| `screen`                                           | The box an open screen fills     |
 
 ## Kanza?
 

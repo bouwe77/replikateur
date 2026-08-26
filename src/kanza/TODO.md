@@ -50,7 +50,20 @@
       startcommando, de commandoset en de state bij de parent, dus je kunt geen
       losse "dit is mijn oompa REPL" waarde doorgeven. Met support kan een handler
       teruggeven "ga verder met deze commands". De prop-route moet blijven werken.
-- [ ] TUIs? 😱
+- [x] TUIs? 😱 Algemener gemaakt naar "screens": een command kan tijdelijk iets
+      anders in de terminal zetten, en sluiten brengt je terug bij de prompt. Wat
+      je daar rendert maakt de library niet uit, een TUI is er maar één ding van.
+      Ontwerp en de afwegingen staan in `screens.md`.
+      Gebouwd: `handle` krijgt er een `screen` bij met `open` en `close`. Staat er
+      een screen open, dan renderen de history en de `CommandInput` niet. Die
+      input moest weg, niet alleen verstopt: hij heeft focus en pakt anders de
+      keys af van wat je rendert. De history zelf blijft gewoon staan in
+      `Terminal`, dus sluiten geeft hem onaangeroerd terug, en `useFocus` van een
+      opnieuw gemounte `CommandInput` zet de focus vanzelf terug op de prompt.
+      Eén screen tegelijk, en Kanza luistert nergens op zolang er een openstaat,
+      ook niet op Ctrl+C: dat zou een key afpakken van wat er in het screen leeft.
+      Nog open in `screens.md`: scrollpositie bij terugkomen, een screen openen
+      buiten een command om, en iets teruggeven via `close`.
 - [x] Validatie op commands? Ik heb met TS al aangegeven dat spaties niet zijn
       toegestaan, maar runtime is er vast van alles te checken in mijn huidige code...
       Runtime checks bij render (`console.error`): lege naam, spatie in de naam, naam

@@ -1,4 +1,46 @@
+import { useEffect, useState } from 'react'
 import type { Commands } from './kanza'
+
+const FLAVOURS = ['Chocolate', 'Strawberry', 'Blueberry', 'Snozzberry']
+
+// Written by hand, on purpose. A screen is a plain React component: it knows
+// nothing about the terminal, it only gets an onExit from whoever opened it.
+// It listens on the window because the prompt is gone while it is open, so
+// there is nothing left to fight over the keyboard with.
+const Menu = ({ onExit }: { onExit: () => void }) => {
+  const [selected, setSelected] = useState(0)
+  const [picked, setPicked] = useState<string | null>(null)
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const last = FLAVOURS.length - 1
+
+      if (e.key === 'ArrowDown') setSelected((i) => (i === last ? 0 : i + 1))
+      if (e.key === 'ArrowUp') setSelected((i) => (i === 0 ? last : i - 1))
+      if (e.key === 'Enter') setPicked(FLAVOURS[selected])
+      if (e.key === 'q' || e.key === 'Escape') onExit()
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selected, onExit])
+
+  return (
+    <div style={{ whiteSpace: 'pre' }}>
+      Pick a flavour. Arrows to move, Enter to pick, q to leave.
+      <br />
+      <br />
+      {FLAVOURS.map((flavour, index) => (
+        <div key={flavour}>
+          {index === selected ? '> ' : '  '}
+          {flavour}
+        </div>
+      ))}
+      <br />
+      {picked ? `You picked ${picked}.` : ' '}
+    </div>
+  )
+}
 
 const commands: Commands = {
   hello: {
@@ -78,6 +120,16 @@ const commands: Commands = {
     help: {
       example: 'wait 3',
       description: 'Wait a number of seconds, then answer',
+    },
+  },
+
+  // A screen: the terminal shows something else until you leave it, and the
+  // history is waiting for you when you get back.
+  menu: {
+    handle: ({ screen }) => screen.open(<Menu onExit={screen.close} />),
+    help: {
+      example: 'menu',
+      description: 'Open a screen you can move around in',
     },
   },
 
