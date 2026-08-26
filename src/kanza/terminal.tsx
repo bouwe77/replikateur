@@ -26,6 +26,7 @@ export type TerminalClasses = {
   pending?: string
   welcome?: string
   scrollAnchor?: string
+  screen?: string
 }
 
 export type CommandFlags = Record<string, string | boolean>
@@ -37,11 +38,20 @@ export type CommandFlagDefinition = {
 
 export type CommandFlagDefinitions = Record<string, CommandFlagDefinition>
 
+// Puts something else in the terminal for a while, instead of the history and the
+// prompt. What you render there is yours, including the way out: `close` is handed
+// to the handler, so you pass it into your own component however you like.
+export type TerminalScreen = {
+  open: (screen: ReactNode) => void
+  close: () => void
+}
+
 export type CommandHandlerArgs = {
   rawInput: string
   input: string
   args: string[]
   flags: CommandFlags
+  screen: TerminalScreen
 }
 
 export type CommandResponse = ReactNode | Promise<ReactNode> | void
@@ -617,6 +627,21 @@ export const Terminal = ({
   const { history, pushToHistory, replaceResponse } = useTerminalHistory(prompt)
   const containerRef = useRef<HTMLDivElement | null>(null)
 
+  // What the terminal shows instead of itself. The history stays where it is while
+  // this is set, so closing brings it back untouched. One screen at a time: opening
+  // another one replaces it, and closing always lands back at the prompt.
+  const [screen, setScreen] = useState<ReactNode>(null)
+
+  const screenApi = useMemo<TerminalScreen>(
+    () => ({
+      // Through the updater, so a node that happens to be a function is not
+      // mistaken for one.
+      open: (next) => setScreen(() => next),
+      close: () => setScreen(null),
+    }),
+    [],
+  )
+
   const { visibleHistory, hasCleared } = useMemo(() => {
     let lastClearIndex = -1
     for (let i = history.length - 1; i >= 0; i--) {
@@ -661,6 +686,7 @@ export const Terminal = ({
             input,
             args,
             flags: resolved.flags,
+            screen: screenApi,
           }),
         }
       } catch (error) {
@@ -762,26 +788,38 @@ export const Terminal = ({
     <div
       ref={containerRef}
       role="presentation"
-      onClick={() => containerRef.current?.querySelector('input')?.focus()}
+      onClick={() => {
+        // A screen looks after its own focus, and any input in there is not ours.
+        if (screen) return
+        containerRef.current?.querySelector('input')?.focus()
+      }}
       className={`${styles.terminal} ${classes?.terminal || ''}`}
     >
-      {welcome && !hasCleared && (
-        <div className={`${styles.welcome} ${classes?.welcome || ''}`}>
-          {welcome}
+      {screen ? (
+        <div className={`${styles.screen} ${classes?.screen || ''}`}>
+          {screen}
         </div>
+      ) : (
+        <>
+          {welcome && !hasCleared && (
+            <div className={`${styles.welcome} ${classes?.welcome || ''}`}>
+              {welcome}
+            </div>
+          )}
+          <HistoryList history={visibleHistory} classes={classes} />
+          <CommandInput
+            onSubmitCommand={handleCommand}
+            onCancel={handleCancel}
+            history={history}
+            prompt={prompt}
+            classes={classes}
+          />
+          <div
+            ref={bottomRef}
+            className={`${styles.scrollAnchor} ${classes?.scrollAnchor || ''}`}
+          />
+        </>
       )}
-      <HistoryList history={visibleHistory} classes={classes} />
-      <CommandInput
-        onSubmitCommand={handleCommand}
-        onCancel={handleCancel}
-        history={history}
-        prompt={prompt}
-        classes={classes}
-      />
-      <div
-        ref={bottomRef}
-        className={`${styles.scrollAnchor} ${classes?.scrollAnchor || ''}`}
-      />
     </div>
   )
 }

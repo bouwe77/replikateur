@@ -1170,3 +1170,114 @@ describe('A changing prompt', () => {
     expect(screen.getByText('Unknown command: hello')).toBeInTheDocument()
   })
 })
+
+// RTL's `screen` and the terminal's own `screen` would shadow each other, so the
+// handler argument is renamed everywhere in here.
+describe('Screens', () => {
+  const Editor = ({ onExit }: { onExit: () => void }) => (
+    <div>
+      <p>Editing away</p>
+      <button onClick={onExit}>quit</button>
+    </div>
+  )
+
+  const screenCommands: Commands = {
+    hello: { handle: () => 'Hello World!' },
+    edit: {
+      handle: ({ screen: terminal }) =>
+        terminal.open(<Editor onExit={terminal.close} />),
+    },
+    leave: {
+      handle: ({ screen: terminal }) => terminal.close(),
+    },
+  }
+
+  const type = async (commandLine: string) => {
+    const user = userEvent.setup()
+    const input = screen.getByRole('textbox', { name: /command/i })
+    await user.type(input, `${commandLine}{enter}`)
+  }
+
+  test('takes over the terminal, prompt and all', async () => {
+    render(<Terminal commands={screenCommands} welcome="Welcome" />)
+
+    await type('hello')
+    await type('edit')
+
+    expect(screen.getByText('Editing away')).toBeInTheDocument()
+
+    // Nothing of the terminal is left: no history, no welcome, and above all no
+    // input, so it cannot take the keys the screen is listening for.
+    expect(screen.queryByRole('log')).not.toBeInTheDocument()
+    expect(screen.queryByText('Welcome')).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('textbox', { name: /command/i }),
+    ).not.toBeInTheDocument()
+  })
+
+  test('gives the history back untouched when it closes', async () => {
+    const user = userEvent.setup()
+    render(<Terminal commands={screenCommands} />)
+
+    await type('hello')
+    await type('edit')
+    await user.click(screen.getByRole('button', { name: 'quit' }))
+
+    expect(screen.queryByText('Editing away')).not.toBeInTheDocument()
+
+    const log = screen.getByRole('log')
+    expect(within(log).getByText('Hello World!')).toBeInTheDocument()
+    // The line that opened the screen is echoed like any other command.
+    expect(within(log).getByText('edit')).toBeInTheDocument()
+  })
+
+  test('focuses the prompt again when it closes', async () => {
+    const user = userEvent.setup()
+    render(<Terminal commands={screenCommands} />)
+
+    await type('edit')
+    await user.click(screen.getByRole('button', { name: 'quit' }))
+
+    expect(screen.getByRole('textbox', { name: /command/i })).toHaveFocus()
+  })
+
+  test('a screen opened by an async command behaves the same', async () => {
+    let openSlowly: () => void = () => {}
+
+    const commands: Commands = {
+      slow: {
+        handle: ({ screen: terminal }) =>
+          new Promise<null>((resolve) => {
+            openSlowly = () => {
+              terminal.open(<Editor onExit={terminal.close} />)
+              resolve(null)
+            }
+          }),
+      },
+    }
+
+    render(<Terminal commands={commands} />)
+
+    await type('slow')
+    expect(screen.getByRole('log')).toHaveTextContent('...')
+
+    await act(async () => {
+      openSlowly()
+    })
+
+    expect(screen.getByText('Editing away')).toBeInTheDocument()
+    expect(screen.queryByRole('log')).not.toBeInTheDocument()
+  })
+
+  test('closing when no screen is open does nothing', async () => {
+    render(<Terminal commands={screenCommands} />)
+
+    await type('leave')
+
+    const log = screen.getByRole('log')
+    expect(within(log).getByText('leave')).toBeInTheDocument()
+    expect(
+      screen.getByRole('textbox', { name: /command/i }),
+    ).toBeInTheDocument()
+  })
+})

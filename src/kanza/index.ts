@@ -5,6 +5,7 @@ export { Terminal } from './terminal'
 export type {
   TerminalProps,
   TerminalClasses,
+  TerminalScreen,
   Commands,
   CommandDefinition,
   CommandHandler,
