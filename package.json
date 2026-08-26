@@ -1,8 +1,21 @@
 {
-  "name": "react-terminal",
+  "name": "kanza",
   "private": false,
-  "version": "0.0.0",
+  "version": "0.0.5",
   "type": "module",
+  "main": "./dist/kanza.js",
+  "module": "./dist/kanza.js",
+  "types": "./dist/kanza.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/kanza.d.ts",
+      "import": "./dist/kanza.js"
+    },
+    "./style.css": "./dist/kanza.css"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -11,9 +24,9 @@
     "test:ui": "vitest --ui",
     "coverage": "vitest run --coverage"
   },
-  "dependencies": {
-    "react": "19.2.4",
-    "react-dom": "19.2.4"
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "6.9.1",
@@ -24,8 +37,26 @@
     "@vitejs/plugin-react": "5.1.2",
     "@vitest/ui": "4.0.18",
     "happy-dom": "^20.5.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
     "typescript": "5.9.3",
     "vite": "7.3.1",
+    "vite-plugin-dts": "^4.5.4",
     "vitest": "4.0.18"
+  },
+  "description": "A lightweight, customizable terminal emulator component for React",
+  "keywords": [
+    "react",
+    "terminal",
+    "repl",
+    "console",
+    "shell",
+    "component"
+  ],
+  "author": "Bouwe Westerdijk",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bouwe77/kanza.git"
   }
 }
