@@ -29,6 +29,12 @@ export type TerminalClasses = {
   screen?: string
 }
 
+// Every class name is the built in one plus yours, if you passed one for that
+// part. Bound to `classes` once per component, so a site reads as cx('prompt').
+const classNames =
+  (classes?: TerminalClasses) => (key: keyof TerminalClasses) =>
+    `${styles[key]} ${classes?.[key] ?? ''}`
+
 export type CommandFlags = Record<string, string | boolean>
 
 export type CommandFlagDefinition = {
@@ -367,13 +373,17 @@ const resolveFlags = (
 
 // Shown in place of the response while an async command is still running. The
 // dots are animated in CSS, so nothing here needs a timer.
-const Pending = ({ classes }: { classes?: TerminalClasses }) => (
-  <span className={`${styles.pending} ${classes?.pending || ''}`}>
-    <span>.</span>
-    <span>.</span>
-    <span>.</span>
-  </span>
-)
+const Pending = ({ classes }: { classes?: TerminalClasses }) => {
+  const cx = classNames(classes)
+
+  return (
+    <span className={cx('pending')}>
+      <span>.</span>
+      <span>.</span>
+      <span>.</span>
+    </span>
+  )
+}
 
 // The built ins are handled here rather than declared, so they exist only so that
 // "help" can list them. A command of your own with the same name replaces them.
@@ -399,38 +409,19 @@ interface HistoryListProps {
   classes?: TerminalClasses
 }
 
-export const HistoryList = ({ history, classes }: HistoryListProps) => {
+const HistoryList = ({ history, classes }: HistoryListProps) => {
+  const cx = classNames(classes)
+
   return (
     <div role="log">
       {history.map((h) => (
-        <div
-          key={h.id}
-          className={`${styles.historyItem} ${classes?.historyItem || ''}`}
-        >
-          <div className={`${styles.historyRow} ${classes?.historyRow || ''}`}>
-            <span
-              className={`${styles.historyPrompt} ${
-                classes?.historyPrompt || ''
-              }`}
-            >
-              {h.prompt}
-            </span>
-            <span
-              className={`${styles.historyInput} ${
-                classes?.historyInput || ''
-              }`}
-            >
-              {h.rawInput}
-            </span>
+        <div key={h.id} className={cx('historyItem')}>
+          <div className={cx('historyRow')}>
+            <span className={cx('historyPrompt')}>{h.prompt}</span>
+            <span className={cx('historyInput')}>{h.rawInput}</span>
           </div>
           {h.response && (
-            <div
-              className={`${styles.historyResponse} ${
-                classes?.historyResponse || ''
-              }`}
-            >
-              {h.response}
-            </div>
+            <div className={cx('historyResponse')}>{h.response}</div>
           )}
         </div>
       ))}
@@ -448,43 +439,42 @@ interface HelpProps {
 const flagNames = (long: string, short?: string) =>
   short ? `--${long}, -${short}` : `--${long}`
 
-export const Help = ({
+const Help = ({
   commands,
   heading = 'Available commands:',
   classes,
-}: HelpProps) => (
-  <div className={`${styles.helpContainer} ${classes?.helpContainer || ''}`}>
-    {heading}
-    {Object.entries(commands)
-      .filter(([_, cmd]) => cmd.help)
-      .map(([name, cmd], index) => {
-        const { longToShort } = buildShortForms(cmd.flags ?? {})
+}: HelpProps) => {
+  const cx = classNames(classes)
 
-        return (
-          <Fragment key={name}>
-            {(heading || index > 0) && <br />}
-            <span
-              className={`${styles.helpExample} ${classes?.helpExample || ''}`}
-            >
-              {cmd.help?.example}
-            </span>{' '}
-            - {cmd.help?.description}
-            {Object.entries(cmd.flags ?? {}).map(([long, definition]) => (
-              <Fragment key={long}>
-                <br />
-                <span
-                  className={`${styles.helpFlag} ${classes?.helpFlag || ''}`}
-                >
-                  {flagNames(long, longToShort[long])}
-                </span>{' '}
-                {definition.description}
-              </Fragment>
-            ))}
-          </Fragment>
-        )
-      })}
-  </div>
-)
+  return (
+    <div className={cx('helpContainer')}>
+      {heading}
+      {Object.entries(commands)
+        .filter(([_, cmd]) => cmd.help)
+        .map(([name, cmd], index) => {
+          const { longToShort } = buildShortForms(cmd.flags ?? {})
+
+          return (
+            <Fragment key={name}>
+              {(heading || index > 0) && <br />}
+              <span className={cx('helpExample')}>
+                {cmd.help?.example}
+              </span> - {cmd.help?.description}
+              {Object.entries(cmd.flags ?? {}).map(([long, definition]) => (
+                <Fragment key={long}>
+                  <br />
+                  <span className={cx('helpFlag')}>
+                    {flagNames(long, longToShort[long])}
+                  </span>{' '}
+                  {definition.description}
+                </Fragment>
+              ))}
+            </Fragment>
+          )
+        })}
+    </div>
+  )
+}
 
 interface CommandInputProps {
   onSubmitCommand: (command: string) => boolean
@@ -494,13 +484,14 @@ interface CommandInputProps {
   classes?: TerminalClasses
 }
 
-export const CommandInput = ({
+const CommandInput = ({
   onSubmitCommand,
   onCancel,
   history,
   prompt,
   classes,
 }: CommandInputProps) => {
+  const cx = classNames(classes)
   const commandInputRef = useRef<HTMLInputElement>(null)
   const [historyPointer, setHistoryPointer] = useState(-1)
 
@@ -555,18 +546,13 @@ export const CommandInput = ({
   }
 
   return (
-    <form
-      onSubmit={handleFormSubmit}
-      className={`${styles.inputForm} ${classes?.inputForm || ''}`}
-    >
-      <span className={`${styles.prompt} ${classes?.prompt || ''}`}>
-        {prompt}
-      </span>
+    <form onSubmit={handleFormSubmit} className={cx('inputForm')}>
+      <span className={cx('prompt')}>{prompt}</span>
       <input
         autoFocus
         aria-label="command"
         ref={commandInputRef}
-        className={`${styles.cursor} ${classes?.cursor || ''}`}
+        className={cx('cursor')}
         onKeyDown={handleKeyDown}
         autoComplete="off"
         spellCheck="false"
@@ -598,6 +584,7 @@ export const Terminal = ({
   welcome,
   classes,
 }: TerminalProps) => {
+  const cx = classNames(classes)
   const { history, pushToHistory, replaceResponse } = useTerminalHistory(prompt)
 
   // What the terminal shows instead of itself. The history stays where it is while
@@ -745,18 +732,14 @@ export const Terminal = ({
         if (screen) return
         e.currentTarget.querySelector('input')?.focus()
       }}
-      className={`${styles.terminal} ${classes?.terminal || ''}`}
+      className={cx('terminal')}
     >
       {screen ? (
-        <div className={`${styles.screen} ${classes?.screen || ''}`}>
-          {screen}
-        </div>
+        <div className={cx('screen')}>{screen}</div>
       ) : (
         <>
           {welcome && !hasCleared && (
-            <div className={`${styles.welcome} ${classes?.welcome || ''}`}>
-              {welcome}
-            </div>
+            <div className={cx('welcome')}>{welcome}</div>
           )}
           <HistoryList history={visibleHistory} classes={classes} />
           <CommandInput
@@ -766,10 +749,7 @@ export const Terminal = ({
             prompt={prompt}
             classes={classes}
           />
-          <div
-            ref={bottomRef}
-            className={`${styles.scrollAnchor} ${classes?.scrollAnchor || ''}`}
-          />
+          <div ref={bottomRef} className={cx('scrollAnchor')} />
         </>
       )}
     </div>

@@ -9,8 +9,8 @@ fi
 
 echo "🚀 Starting publish process..."
 
-# 1. Clean install to ensure build tools (vite) are ready
-# (Optional, but fixes your specific 'vite not found' error)
+# 1. Install first, so the build cannot fail on a missing build tool halfway
+#    through a release, after the version bump has already happened.
 echo "📦 Installing dependencies..."
 npm install
 

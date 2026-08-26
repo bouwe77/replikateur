@@ -1,5 +1,4 @@
-// The public interface of the library. Everything else in ./terminal is
-// internal, even where it is exported there so the tests can reach it.
+// The public interface of the library. Everything else in ./terminal is internal.
 export { Terminal } from './terminal'
 
 export type {
