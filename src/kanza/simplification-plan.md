@@ -1,39 +1,45 @@
 # Plan: cut complexity
 
-A review of the whole library for over-engineering, grouped by priority. Nothing
-here is applied yet. Two items are marked **verified**: the change was made in a
-scratch copy and the full suite (83 tests) still passed.
+A review of the whole library for over-engineering, grouped by priority. The
+Must items are done; the rest is not.
 
-Estimated total: about 660 lines less.
+Estimated total: about 660 lines less, of which 52 are gone.
+
+The line numbers in Should and Could point at `terminal.tsx` as it was before
+the Must items, so they sit about 50 lines lower now.
 
 ## Must — pure deletions, no API change
 
-About 73 lines. All inside `terminal.tsx`.
+Done. All of it was inside `terminal.tsx`, which went from 825 to 773 lines.
+The suite still passes, 83 tests, and `tsc` and prettier are clean.
 
-- [ ] **L97-106 `useFocus`.** A 10-line hook for focus on mount, plus a
+Still unproven outside happy-dom: `autoFocus` on mount, and the caret landing
+at the end after writing `input.value`. Both need one click in a real browser.
+
+- [x] **L97-106 `useFocus`.** A 10-line hook for focus on mount, plus a
       `setFocus()` after submit where focus never left the input. Replace with
       `autoFocus` on the input and a plain `useRef`. **Verified: 83/83 pass.**
-- [ ] **L513-520, 550, 565 `moveCursorToEnd`.** Assigning `input.value` already
+- [x] **L513-520, 550, 565 `moveCursorToEnd`.** Assigning `input.value` already
       puts the caret at the end, so the `setTimeout(…, 0)` and
       `setSelectionRange` are not needed. **Verified: 83/83 pass.** Worth one
       click in a real browser before trusting happy-dom on this.
-- [ ] **L542-569 arrow keys.** ArrowUp and ArrowDown are the same 14 lines
+- [x] **L542-569 arrow keys.** ArrowUp and ArrowDown are the same 14 lines
       twice. One branch with `const step = e.key === 'ArrowUp' ? 1 : -1`, then
       `input.value = recallable.at(-1 - next)?.rawInput ?? ''`. About 8 lines.
-- [ ] **L645-659 last `clear`.** A hand-written reverse loop. Use
+- [x] **L645-659 last `clear`.** A hand-written reverse loop. Use
       `history.findLastIndex((h) => h.isClear)`.
-- [ ] **L92-95 `useIdCounter`.** A hook with one caller. Put
+- [x] **L92-95 `useIdCounter`.** A hook with one caller. Put
       `const counter = useRef(0)` inside `useTerminalHistory`.
-- [ ] **L108-122 `useScrollIntoView`.** Takes `dependency: any` and branches on
+- [x] **L108-122 `useScrollIntoView`.** Takes `dependency: any` and branches on
       `Array.isArray`, but is only ever called with an array. Take the array,
       check `items.length`, and the `any` disappears too.
-- [ ] **L635-643 `screenApi`.** Wrapped in `useMemo`, but its identity never
+- [x] **L635-643 `screenApi`.** Wrapped in `useMemo`, but its identity never
       reaches a dependency array or a memoised child. Plain object literal.
-- [ ] **L628, 791-795 `containerRef`.** Exists for one `querySelector`. Use
+- [x] **L628, 791-795 `containerRef`.** Exists for one `querySelector`. Use
       `e.currentTarget.querySelector('input')?.focus()`.
-- [ ] **L165-168, 291 `RawFlag.dashes`.** Stored as a number only to be rebuilt
+- [x] **L165-168, 291 `RawFlag.dashes`.** Stored as a number only to be rebuilt
       as `'-'.repeat(flag.dashes)`. Store the string `'--'` or `'-'`.
-- [ ] **L522-582 null checks.** `if (commandInputRef.current)` five times. One
+- [x] **L522-582 null checks.** `if (commandInputRef.current)` five times. One
       `const input = commandInputRef.current; if (!input) return` at the top.
 
 ## Should
@@ -87,7 +93,7 @@ before cutting.
       `terminal.test.tsx` imports only `Terminal`. Drop the keyword and fix the
       comment.
 - [ ] **`terminal.module.css` L85-88.** `.scrollAnchor { float: left; clear:
-      both }` on an empty div in a flex column. Float does nothing there.
+    both }` on an empty div in a flex column. Float does nothing there.
 - [ ] **`terminal.module.css` L1, L72-74.** A header comment naming a file that
       does not exist, and `.cursor:focus { outline: none }` repeating what
       `.cursor` already sets.

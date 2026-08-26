@@ -89,48 +89,28 @@ export type HistoryItem = {
 
 export type History = HistoryItem[]
 
-const useIdCounter = () => {
-  const counter = useRef(0)
-  return () => counter.current++
-}
-
-const useFocus = <T extends HTMLElement>() => {
-  const ref = useRef<T>(null)
-  const setFocus = () => {
-    ref.current?.focus()
-  }
-  useEffect(() => {
-    setFocus()
-  }, [])
-  return { ref, setFocus }
-}
-
-const useScrollIntoView = (dependency: any) => {
+const useScrollIntoView = (items: unknown[]) => {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const hasContent = Array.isArray(dependency)
-      ? dependency.length > 0
-      : !!dependency
-
-    if (hasContent) {
+    if (items.length) {
       ref.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
     }
-  }, [dependency])
+  }, [items])
 
   return ref
 }
 
 const useTerminalHistory = (prompt: string) => {
   const [history, setHistory] = useState<History>([])
-  const getNextId = useIdCounter()
+  const nextId = useRef(0)
 
   const pushToHistory = (
     rawInput: string,
     response: CommandResponse,
     marks: Pick<HistoryItem, 'isClear' | 'isInterrupt'> = {},
   ) => {
-    const id = getNextId()
+    const id = nextId.current++
 
     setHistory((prev) => [
       ...prev,
@@ -163,7 +143,7 @@ const DEFAULT_PROMPT = '>'
 const FLAG_TOKEN = /^(--?)([a-zA-Z].*)$/
 
 type RawFlag = {
-  dashes: number
+  dashes: string
   name: string
   value: string | boolean
 }
@@ -193,7 +173,7 @@ const parseCommandInput = (commandLine: string) => {
       // No words may follow, so a flag on its own means true.
       const value = equals === -1 ? true : rest.slice(equals + 1)
 
-      rawFlags.push({ dashes: dashes.length, name, value })
+      rawFlags.push({ dashes, name, value })
       continue
     }
 
@@ -288,7 +268,7 @@ const unknownFlagError = (
   definitions: CommandFlagDefinitions,
   longToShort: Record<string, string>,
 ) => {
-  const typed = `${'-'.repeat(flag.dashes)}${flag.name}`
+  const typed = `${flag.dashes}${flag.name}`
   const longs = Object.keys(definitions)
 
   if (longs.length === 0) {
@@ -365,7 +345,7 @@ const resolveFlags = (
 
   for (const flag of rawFlags) {
     const long =
-      flag.dashes === 2
+      flag.dashes === '--'
         ? flag.name in definitions
           ? flag.name
           : undefined
@@ -507,19 +487,12 @@ export const CommandInput = ({
   prompt,
   classes,
 }: CommandInputProps) => {
-  const { ref: commandInputRef, setFocus } = useFocus<HTMLInputElement>()
+  const commandInputRef = useRef<HTMLInputElement>(null)
   const [historyPointer, setHistoryPointer] = useState(-1)
 
-  const moveCursorToEnd = () => {
-    setTimeout(() => {
-      if (commandInputRef.current) {
-        const length = commandInputRef.current.value.length
-        commandInputRef.current.setSelectionRange(length, length)
-      }
-    }, 0)
-  }
-
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    const input = e.currentTarget
+
     if (e.ctrlKey && e.key === 'c') {
       // In a browser Ctrl+C is copy, so only interrupt when nothing is selected.
       if (!window.getSelection()?.isCollapsed) return
@@ -528,57 +501,43 @@ export const CommandInput = ({
 
       // Ctrl+C goes to the running command first, and leaves the prompt alone,
       // because what is typed there was typed while waiting for that command.
-      if (onCancel(commandInputRef.current?.value ?? '')) return
+      if (onCancel(input.value)) return
 
       // Nothing was running, so it abandons the line instead, like an idle shell.
-      if (commandInputRef.current) commandInputRef.current.value = ''
+      input.value = ''
       setHistoryPointer(-1)
       return
     }
 
+    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
+
     const recallable = history.filter((item) => !item.isInterrupt)
     if (recallable.length === 0) return
 
-    if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      const nextIndex = Math.min(historyPointer + 1, recallable.length - 1)
-      setHistoryPointer(nextIndex)
+    e.preventDefault()
 
-      const historicalCmd = recallable[recallable.length - 1 - nextIndex]
-      if (historicalCmd && commandInputRef.current) {
-        commandInputRef.current.value = historicalCmd.rawInput
-        moveCursorToEnd()
-      }
-    }
+    // Up walks back through the history, down walks forward again, and -1 is the
+    // empty line you started on. Writing `value` puts the caret at the end.
+    const step = e.key === 'ArrowUp' ? 1 : -1
+    const next = Math.min(
+      Math.max(historyPointer + step, -1),
+      recallable.length - 1,
+    )
 
-    if (e.key === 'ArrowDown') {
-      e.preventDefault()
-      const nextIndex = historyPointer - 1
-      setHistoryPointer(nextIndex)
-
-      if (nextIndex <= -1) {
-        setHistoryPointer(-1)
-        if (commandInputRef.current) commandInputRef.current.value = ''
-      } else {
-        const historicalCmd = recallable[recallable.length - 1 - nextIndex]
-        if (historicalCmd && commandInputRef.current) {
-          commandInputRef.current.value = historicalCmd.rawInput
-          moveCursorToEnd()
-        }
-      }
-    }
+    setHistoryPointer(next)
+    input.value = next === -1 ? '' : (recallable.at(-1 - next)?.rawInput ?? '')
   }
 
   const handleFormSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!commandInputRef.current) return
+    const input = commandInputRef.current
+    if (!input) return
 
     // Refused because a command is still running, so leave the line alone.
-    if (!onSubmitCommand(commandInputRef.current.value)) return
+    if (!onSubmitCommand(input.value)) return
 
-    commandInputRef.current.value = ''
+    input.value = ''
     setHistoryPointer(-1)
-    setFocus()
   }
 
   return (
@@ -590,6 +549,7 @@ export const CommandInput = ({
         {prompt}
       </span>
       <input
+        autoFocus
         aria-label="command"
         ref={commandInputRef}
         className={`${styles.cursor} ${classes?.cursor || ''}`}
@@ -625,35 +585,24 @@ export const Terminal = ({
   classes,
 }: TerminalProps) => {
   const { history, pushToHistory, replaceResponse } = useTerminalHistory(prompt)
-  const containerRef = useRef<HTMLDivElement | null>(null)
 
   // What the terminal shows instead of itself. The history stays where it is while
   // this is set, so closing brings it back untouched. One screen at a time: opening
   // another one replaces it, and closing always lands back at the prompt.
   const [screen, setScreen] = useState<ReactNode>(null)
 
-  const screenApi = useMemo<TerminalScreen>(
-    () => ({
-      // Through the updater, so a node that happens to be a function is not
-      // mistaken for one.
-      open: (next) => setScreen(() => next),
-      close: () => setScreen(null),
-    }),
-    [],
-  )
+  const screenApi: TerminalScreen = {
+    // Through the updater, so a node that happens to be a function is not
+    // mistaken for one.
+    open: (next) => setScreen(() => next),
+    close: () => setScreen(null),
+  }
 
   const { visibleHistory, hasCleared } = useMemo(() => {
-    let lastClearIndex = -1
-    for (let i = history.length - 1; i >= 0; i--) {
-      if (history[i].isClear) {
-        lastClearIndex = i
-        break
-      }
-    }
+    const lastClearIndex = history.findLastIndex((item) => item.isClear)
 
     return {
-      visibleHistory:
-        lastClearIndex === -1 ? history : history.slice(lastClearIndex + 1),
+      visibleHistory: history.slice(lastClearIndex + 1),
       hasCleared: lastClearIndex !== -1,
     }
   }, [history])
@@ -786,12 +735,11 @@ export const Terminal = ({
 
   return (
     <div
-      ref={containerRef}
       role="presentation"
-      onClick={() => {
+      onClick={(e) => {
         // A screen looks after its own focus, and any input in there is not ours.
         if (screen) return
-        containerRef.current?.querySelector('input')?.focus()
+        e.currentTarget.querySelector('input')?.focus()
       }}
       className={`${styles.terminal} ${classes?.terminal || ''}`}
     >
