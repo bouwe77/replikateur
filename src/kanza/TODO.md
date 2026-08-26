@@ -34,6 +34,9 @@
       `Cancelled` wordt, en zonder draaiend command helemaal niets.
 - [ ] Tab autocomplete op commandonamen. Alles is er al: de namen zijn de keys van
       `commands`, en `CommandInput` handelt ArrowUp/ArrowDown al af.
+      UX-overzicht van alle gevallen en de voorgestelde scope staat in
+      `tab-completion.md`. Kort: alleen commandonamen bouwen, lijst in plaats van
+      cyclen, waardes (`--city <Tab>`) buiten scope tot een command het nodig heeft.
 - [x] `help <command>` voor één command, nu help langer wordt door de flags per command.
 - [x] BUG: de prompt in de history volgt de huidige `prompt` prop in plaats van die
       van het moment dat het command draaide. Verander je `prompt`, dan veranderen
@@ -45,7 +48,7 @@
       Kan nu al, zonder library changes: `commands` en `prompt` zijn props, dus de
       parent kan ze omwisselen. Getest: scoping, `help` en alles rond flags en async
       werken dan gewoon binnen de REPL. Staat nu als `oompa` in de demo app en in
-      het quick test appje, en in de readme.
+      de readme.
       Wat de library zou toevoegen is verpakking, geen mogelijkheid: nu ligt het
       startcommando, de commandoset en de state bij de parent, dus je kunt geen
       losse "dit is mijn oompa REPL" waarde doorgeven. Met support kan een handler
@@ -53,7 +56,7 @@
 - [x] TUIs? 😱 Algemener gemaakt naar "screens": een command kan tijdelijk iets
       anders in de terminal zetten, en sluiten brengt je terug bij de prompt. Wat
       je daar rendert maakt de library niet uit, een TUI is er maar één ding van.
-      Ontwerp en de afwegingen staan in `screens.md`.
+      De API staat in `README.md`, de afwegingen in commit f52510d.
       Gebouwd: `handle` krijgt er een `screen` bij met `open` en `close`. Staat er
       een screen open, dan renderen de history en de `CommandInput` niet. Die
       input moest weg, niet alleen verstopt: hij heeft focus en pakt anders de
@@ -62,8 +65,22 @@
       opnieuw gemounte `CommandInput` zet de focus vanzelf terug op de prompt.
       Eén screen tegelijk, en Kanza luistert nergens op zolang er een openstaat,
       ook niet op Ctrl+C: dat zou een key afpakken van wat er in het screen leeft.
-      Nog open in `screens.md`: scrollpositie bij terugkomen, een screen openen
-      buiten een command om, en iets teruggeven via `close`.
+- [ ] Screens: vier dingen bewust open gelaten. Geen blockers, oppakken als er een
+      reden voor is.
+      - Scrollpositie bij terugkomen. De history verbergen betekent dat de
+        scrollpositie van de container weg is, dus sluiten landt waarschijnlijk
+        bovenaan de scrollback in plaats van waar je was. Alleen te merken bij een
+        lange history.
+      - Een screen openen buiten een command om. Nu kan alleen een handler het. Een
+        app die *in* een screen wil starten kan dat niet zeggen. Een prop zou het
+        doen, en past bij de geneste REPL, maar niets heeft het nodig.
+      - Iets teruggeven via `close`. `close()` neemt niets aan, dus een screen dat
+        een resultaat wil melden (een gekozen bestand, een ingevuld formulier) moet
+        dat via je eigen state doen. Blijkt dat het normale geval, dan is
+        `close(node)` dat een history-regel pusht de volgende stap.
+      - Nesten. Besloten als "vervangen", maar niets kan het triggeren: alleen een
+        command opent een screen, en zolang er een openstaat is er geen prompt om
+        er een te typen. Terugkomen als openen buiten een command er ooit komt.
 - [x] Validatie op commands? Ik heb met TS al aangegeven dat spaties niet zijn
       toegestaan, maar runtime is er vast van alles te checken in mijn huidige code...
       Runtime checks bij render (`console.error`): lege naam, spatie in de naam, naam

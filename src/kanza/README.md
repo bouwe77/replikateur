@@ -198,6 +198,11 @@ yours. Kanza does not care whether it is a text interface, a form or a game.
 While a screen is open, Kanza listens for nothing, not even Ctrl+C. If what you
 render has no way out, you are stuck, the same as in a real terminal.
 
+Call `preventDefault` on the keys your screen handles. Kanza cannot know which
+ones you used, so without it the browser still acts on them: the arrows scroll the
+page, and the key that closes the screen is typed into the prompt that comes back
+underneath it.
+
 A few smaller things:
 
 - Only one screen at a time. Opening another one replaces it, and closing always
