@@ -66,6 +66,10 @@
   padding: 0;
   caret-color: white;
   outline: none;
+  /* Chromium only for now: Firefox and Safari ignore these and keep their own
+     thin blinking caret. */
+  caret-shape: var(--kanza-caret-shape, bar);
+  caret-animation: var(--kanza-caret-animation, auto);
 }
 
 /* No margin of its own: help is a response like any other, so the spacing

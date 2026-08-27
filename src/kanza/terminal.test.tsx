@@ -1314,3 +1314,32 @@ describe('Screens', () => {
     ).toBeInTheDocument()
   })
 })
+
+describe('Cursor shape and blink', () => {
+  const commands: Commands = { hello: { handle: () => 'Hello World!' } }
+
+  const caretVars = () => {
+    const style = screen.getByRole('presentation').style
+    return [
+      style.getPropertyValue('--kanza-caret-shape'),
+      style.getPropertyValue('--kanza-caret-animation'),
+    ]
+  }
+
+  test('defaults to a blinking bar', () => {
+    render(<Terminal commands={commands} />)
+    expect(caretVars()).toEqual(['bar', 'auto'])
+  })
+
+  test('a shape on its own keeps the blinking', () => {
+    render(<Terminal commands={commands} cursor={{ shape: 'underscore' }} />)
+    expect(caretVars()).toEqual(['underscore', 'auto'])
+  })
+
+  test('a block cursor that does not blink', () => {
+    render(
+      <Terminal commands={commands} cursor={{ shape: 'block', blink: false }} />,
+    )
+    expect(caretVars()).toEqual(['block', 'manual'])
+  })
+})

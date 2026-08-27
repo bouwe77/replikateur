@@ -39,6 +39,7 @@ const App = () => {
       commands={inOompa ? oompa : shell}
       prompt={inOompa ? 'oompa>' : '$'}
       welcome={'Welcome! Type "help" to see what you can do here.'}
+      cursor={{ shape: 'block' }}
     />
   )
 }

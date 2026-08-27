@@ -5,6 +5,8 @@ export type {
   TerminalProps,
   TerminalClasses,
   TerminalScreen,
+  TerminalCursor,
+  CursorShape,
   Commands,
   CommandDefinition,
   CommandHandler,

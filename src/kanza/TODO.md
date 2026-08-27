@@ -91,6 +91,21 @@
       met een streepje ervoor, geen `handle` functie, flagnaam die nooit getypt kan
       worden, en een `short` die geen enkele letter is. Twee flags met dezelfde short
       blokkeert het command zelf, net als een botsing tussen automatische shorts.
+- [x] Cursor instelbaar via een `cursor` prop met `shape` (`bar`, `block`,
+      `underscore`) en `blink`. Geen eigen cursor-element: de caret is die van de browser,
+      en CSS heeft er nu `caret-shape` en `caret-animation` voor. Die staan als
+      twee custom properties op de terminal-box, want custom properties erven,
+      dus `.cursor` pakt ze op zonder extra props door `CommandInput` heen.
+      Alleen Chromium ondersteunt `caret-shape` (144+) en `caret-animation`
+      (139+). In Firefox en Safari blijft het de gewone dunne blinkende streep,
+      en beginnen de props te werken zodra die browsers de properties krijgen.
+      Bewust niet gedaan, geen blockers, oppakken als er een reden voor is:
+      - Blinksnelheid. `caret-animation` is aan of uit, een snelheid vraagt een
+        eigen cursor-element.
+      - Een `color` erbij. Kan al via `classes.cursor` met een eigen
+        `caret-color`, dus dat zou alleen een kortere weg zijn.
+      - Een holle blok-cursor als de terminal geen focus heeft, zoals echte
+        terminals doen. Vraagt ook een eigen element.
 - [x] Alles overhevelen naar kanza en react-terminal repo verwijderen.
 - [x] Constructie om snel een dev build appje op te tuigen, net als met Temba
 

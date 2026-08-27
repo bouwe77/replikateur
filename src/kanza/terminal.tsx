@@ -1,4 +1,5 @@
 import {
+  CSSProperties,
   Fragment,
   KeyboardEvent,
   ReactNode,
@@ -145,6 +146,18 @@ const useTerminalHistory = (prompt: string) => {
 // Requiring a letter keeps negative numbers, like the -5 in "sum -5 10", text.
 // The dashes are captured because a declared command tells - and -- apart.
 const DEFAULT_PROMPT = '>'
+
+// The caret is the browser's own, so shape and blink are the browser's too. The
+// two CSS properties that steer them are Chromium only for now: elsewhere you
+// keep the default thin blinking bar, whatever these say.
+export type CursorShape = 'bar' | 'block' | 'underscore'
+
+export type TerminalCursor = {
+  shape?: CursorShape
+  blink?: boolean
+}
+
+const DEFAULT_CURSOR_SHAPE: CursorShape = 'bar'
 
 const FLAG_TOKEN = /^(--?)([a-zA-Z].*)$/
 
@@ -587,6 +600,7 @@ export type TerminalProps = {
   commands: Commands
   prompt?: string
   welcome?: string
+  cursor?: TerminalCursor
   classes?: TerminalClasses
 }
 
@@ -594,9 +608,21 @@ export const Terminal = ({
   commands,
   prompt = DEFAULT_PROMPT,
   welcome,
+  cursor = {},
   classes,
 }: TerminalProps) => {
   const cx = classNames(classes)
+
+  const { shape = DEFAULT_CURSOR_SHAPE, blink = true } = cursor
+
+  // Set on the terminal box, not on the input: custom properties inherit, so
+  // .cursor picks them up without threading two more props down. The cast is
+  // needed because CSSProperties has no index signature for custom properties.
+  const cursorVars = {
+    '--kanza-caret-shape': shape,
+    '--kanza-caret-animation': blink ? 'auto' : 'manual',
+  } as CSSProperties
+
   const { history, pushToHistory, replaceResponse } = useTerminalHistory(prompt)
 
   // What the terminal shows instead of itself. The history stays where it is while
@@ -745,6 +771,7 @@ export const Terminal = ({
         e.currentTarget.querySelector('input')?.focus()
       }}
       className={cx('terminal')}
+      style={cursorVars}
     >
       {screen ? (
         <div className={cx('screen')}>{screen}</div>

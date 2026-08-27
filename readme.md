@@ -64,6 +64,26 @@ Hello to you too :)
 bouwe@kanza $
 ```
 
+## Cursor
+
+The cursor is the browser's own text caret, and the optional `cursor` prop
+changes how it looks. Both of its properties are optional: `shape` is `'bar'`
+(the default thin line), `'block'` (a box over the character the caret sits on)
+or `'underscore'`, and `blink` is `true` by default, so `false` makes the cursor
+stand still.
+
+```jsx
+<Terminal commands={commands} cursor={{ shape: 'block', blink: false }} />
+```
+
+Both lean on the CSS properties `caret-shape` and `caret-animation`, which only
+Chromium browsers support today. In Firefox and Safari you get their normal thin
+blinking caret instead, and `cursor` does nothing until those browsers ship the
+properties. Nothing breaks either way.
+
+There is no `color` in there, because `classes.cursor` already covers it: your
+own class with a `caret-color` is all it takes. See [Styling](#styling).
+
 ## Commands
 
 ```js
