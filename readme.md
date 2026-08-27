@@ -13,13 +13,15 @@ From the Star Trek: The Next Generation episode
 moment something is grown and ready to use, like a terminal that has finished
 loading and is waiting for your command.
 
-## Install
+## Getting started
+
+### Install
 
 ```bash
 npm install kanza
 ```
 
-## Usage
+### Usage
 
 ```jsx
 import { Terminal } from 'kanza'
@@ -41,93 +43,12 @@ export default function App() {
 `help <command>` shows one command. Define your own command with either name to
 take it over.
 
-## Prompt and welcome
+## Writing commands
 
-Both are optional strings. The prompt replaces the default `>`, on the line you
-type and on every line in the history. The welcome message sits above the
-prompt, and `clear` removes it along with everything else.
+Everything here is code you write. What the terminal does on its own is in
+[What your users get for free](#what-your-users-get-for-free).
 
-```jsx
-<Terminal
-  commands={commands}
-  prompt="bouwe@kanza $"
-  welcome={'Welcome to Kanza.\nType "help" to see what it can do.'}
-/>
-```
-
-```
-Welcome to Kanza.
-Type "help" to see what it can do.
-
-bouwe@kanza $ hello
-Hello to you too :)
-bouwe@kanza $
-```
-
-## Cursor
-
-The cursor is the browser's own text caret, and the optional `cursor` prop
-changes how it looks. Both of its properties are optional: `shape` is `'bar'`
-(the default thin line), `'block'` (a box over the character the caret sits on)
-or `'underscore'`, and `blink` is `true` by default, so `false` makes the cursor
-stand still.
-
-```jsx
-<Terminal commands={commands} cursor={{ shape: 'block', blink: false }} />
-```
-
-Both lean on the CSS properties `caret-shape` and `caret-animation`, which only
-Chromium browsers support today. In Firefox and Safari you get their normal thin
-blinking caret instead, and `cursor` does nothing until those browsers ship the
-properties. Nothing breaks either way.
-
-There is no `color` in there, because the theme covers it: the cursor takes the
-`foreground` colour.
-
-## Theme
-
-The colours, the font and the padding are one optional `theme` prop. Every key
-is optional, and every value is a CSS value passed straight through, so any
-unit or colour notation works. Leave a key out and you get the default.
-
-```jsx
-<Terminal
-  commands={commands}
-  theme={{
-    background: '#001b1b',
-    foreground: '#e8e8e8',
-    promptColor: 'cyan',
-    responseColor: 'rgb(180 180 180)',
-    fontFamily: '"Fira Code", monospace',
-    fontSize: '1.1rem',
-    padding: '2em',
-  }}
-/>
-```
-
-| Key             | What it colours or sets                        | Default                                       |
-| --------------- | ---------------------------------------------- | --------------------------------------------- |
-| `background`    | The whole terminal                             | `black`                                       |
-| `foreground`    | What you type, in the history too, and help    | `white`                                       |
-| `promptColor`   | The prompt, and the example commands in `help` | `#00ff00`                                     |
-| `responseColor` | What a command answered                        | `#cccccc`                                     |
-| `fontFamily`    | Everything, the input included                 | `'Menlo', 'Monaco', 'Courier New', monospace` |
-| `fontSize`      | Everything, the input included                 | `14px`                                        |
-| `padding`       | The space around the whole terminal            | `20px`                                        |
-
-## Size
-
-By default the terminal fills the viewport: the full width of its parent and
-`100vh` tall. Pass `size` to put it in a box on a page instead. Both keys are
-optional and take any CSS length.
-
-```jsx
-<Terminal commands={commands} size={{ width: '600px', height: '400px' }} />
-```
-
-The box scrolls, not the page, so a long history stays inside it either way.
-
-## Commands
+### Commands
 
 ```js
 const commands = {
@@ -151,7 +72,7 @@ const commands = {
 }
 ```
 
-## Subcommands
+### Subcommands
 
 A command name may be more than one word, so `user add` is a command of its
 own, with its own flags and its own help.
@@ -174,7 +95,7 @@ later takes that word away from `user`.
 The name has to come first, so `user --json add` reads as the `user` command
 with a flag, the same as in any other shell.
 
-## Command arguments
+### Command arguments
 
 A command handler receives one object. What is in it depends on whether the
 command line uses flags.
@@ -220,7 +141,50 @@ Good to know:
 - `--name=John` works too, and so does `-n=John`. Only the first `=` counts, so
   `--filter=a=b` keeps `a=b` as the value.
 
-## Async commands
+### Declaring flags
+
+Say nothing and any flag is accepted. Declare them and you get short forms,
+descriptions in `help`, and an error on a typo.
+
+```js
+const commands = {
+  add: {
+    flags: {
+      name: { description: 'The name' }, // -n, automatic
+      number: { short: 'u' }, // -n is taken, so pick another letter
+      city: {}, // -c, no description
+    },
+    handle: ({ flags }) => `Added ${flags.name}`,
+    help: { example: 'add --name John', description: 'Add a person' },
+  },
+}
+```
+
+Short forms are the first letter of the name. An explicit `short` always wins,
+so the flag that would have taken that letter quietly goes without one.
+
+Once a command declares flags, the dashes mean something:
+
+| Typed          | Result                     |
+| -------------- | -------------------------- |
+| `add --name J` | ✓                          |
+| `add -n J`     | ✓, arrives as `flags.name` |
+| `add --n J`    | ✗ `Unknown flag: --n`      |
+| `add -name J`  | ✗ `Unknown flag: -name`    |
+
+Keys are always the long name, so `-n John` arrives as `{ name: 'John' }`.
+
+An unknown flag stops the command:
+
+```
+> add --nmae John
+Unknown flag: --nmae
+Available flags: --name (-n), --city (-c)
+```
+
+Declaring flags does not type them. `flags.name` is still `string | boolean`.
+
+### Async commands
 
 Return a promise and the terminal shows an animated marker until it settles.
 Everything already on screen stays where it is, and you can keep typing.
@@ -238,36 +202,36 @@ const commands = {
 }
 ```
 
-## Programs you stay in
+### Failing
 
-`commands` and `prompt` are props, so a REPL needs nothing from the library.
-Swap both and everything else keeps working: only the inner commands exist,
-`help` lists only those, and the history keeps the prompt each line was typed
-at.
+A command fails by throwing, and succeeds by returning. That is the only
+contract, and it is the same for sync and async handlers.
 
-```jsx
-const App = () => {
-  const [inOompa, setInOompa] = useState(false)
+```js
+const commands = {
+  users: {
+    handle: async () => {
+      const response = await fetch('/api/users')
 
-  return (
-    <Terminal
-      commands={inOompa ? oompaCommands : shellCommands}
-      prompt={inOompa ? 'oompa>' : '>'}
-    />
-  )
+      if (!response.ok) throw new Error('Could not reach the server')
+
+      return `${(await response.json()).length} users found`
+    },
+  },
 }
 ```
 
+The message lands in the history, and the terminal stays usable.
+
 ```
-> oompa
-You are in the chocolate factory. Type "exit" to leave.
-oompa> sing
-♪ Oompa loompa doompety doo ♫
-oompa> exit
->
+> users
+Error: Could not reach the server
 ```
 
-## Screens
+There are no exit codes. Nothing reads them here, so returning text is enough
+when you just want to say something went wrong without it being a failure.
+
+### Screens
 
 A command can put something else in the terminal for a while. The history and the
 prompt step aside, and closing brings them back exactly as they were. This is the
@@ -309,36 +273,41 @@ A few smaller things:
 - An async handler can open a screen once it resolves.
 - `close` with no screen open does nothing.
 
-## Failing
+### Programs you stay in
 
-A command fails by throwing, and succeeds by returning. That is the only
-contract, and it is the same for sync and async handlers.
+`commands` and `prompt` are props, so a REPL needs nothing from the library.
+Swap both and everything else keeps working: only the inner commands exist,
+`help` lists only those, and the history keeps the prompt each line was typed
+at.
 
-```js
-const commands = {
-  users: {
-    handle: async () => {
-      const response = await fetch('/api/users')
+```jsx
+const App = () => {
+  const [inOompa, setInOompa] = useState(false)
 
-      if (!response.ok) throw new Error('Could not reach the server')
-
-      return `${(await response.json()).length} users found`
-    },
-  },
+  return (
+    <Terminal
+      commands={inOompa ? oompaCommands : shellCommands}
+      prompt={inOompa ? 'oompa>' : '>'}
+    />
+  )
 }
 ```
 
-The message lands in the history, and the terminal stays usable.
-
 ```
-> users
-Error: Could not reach the server
+> oompa
+You are in the chocolate factory. Type "exit" to leave.
+oompa> sing
+♪ Oompa loompa doompety doo ♫
+oompa> exit
+>
 ```
 
-There are no exit codes. Nothing reads them here, so returning text is enough
-when you just want to say something went wrong without it being a failure.
+## What your users get for free
 
-## One at a time
+You do not configure any of this. It is what the terminal gives the people who
+type in it.
+
+### One at a time
 
 Only one command runs at a time. While one is running you can keep typing, but
 Enter does nothing and the prompt keeps what you typed. When the command comes
@@ -348,7 +317,7 @@ This is not what a shell does, since a shell buffers your line and runs it when
 the prompt returns. Keeping the text on the prompt makes it visible that it has
 not run yet.
 
-## History
+### History
 
 Arrow up walks back through the commands you typed, and arrow down walks forward
 again. If the line is empty you get the whole history.
@@ -360,7 +329,7 @@ you typed before the first arrow up, and it stays the same while you keep
 walking. Arrow down past the newest match puts your own text back. Typing
 anything else starts a new search.
 
-## Ctrl+C
+### Ctrl+C
 
 It gives up on the running command. That line becomes `Cancelled`, and a result
 that arrives afterwards is ignored.
@@ -386,7 +355,107 @@ Two more details:
 - It only interrupts when nothing is selected, so copying from the terminal
   still works.
 
-## Mistakes in your commands
+## Making it look right
+
+### Prompt and welcome
+
+Both are optional strings. The prompt replaces the default `>`, on the line you
+type and on every line in the history. The welcome message sits above the
+prompt, and `clear` removes it along with everything else.
+
+```jsx
+<Terminal
+  commands={commands}
+  prompt="bouwe@kanza $"
+  welcome={'Welcome to Kanza.\nType "help" to see what it can do.'}
+/>
+```
+
+```
+Welcome to Kanza.
+Type "help" to see what it can do.
+
+bouwe@kanza $ hello
+Hello to you too :)
+bouwe@kanza $
+```
+
+### Cursor
+
+The cursor is the browser's own text caret, and the optional `cursor` prop
+changes how it looks. Both of its properties are optional: `shape` is `'bar'`
+(the default thin line), `'block'` (a box over the character the caret sits on)
+or `'underscore'`, and `blink` is `true` by default, so `false` makes the cursor
+stand still.
+
+```jsx
+<Terminal commands={commands} cursor={{ shape: 'block', blink: false }} />
+```
+
+Both lean on the CSS properties `caret-shape` and `caret-animation`, which only
+Chromium browsers support today. In Firefox and Safari you get their normal thin
+blinking caret instead, and `cursor` does nothing until those browsers ship the
+properties. Nothing breaks either way.
+
+There is no `color` in there, because the theme covers it: the cursor takes the
+`foreground` colour.
+
+### Theme
+
+The colours, the font and the padding are one optional `theme` prop. Every key
+is optional, and every value is a CSS value passed straight through, so any
+unit or colour notation works. Leave a key out and you get the default.
+
+```jsx
+<Terminal
+  commands={commands}
+  theme={{
+    background: '#001b1b',
+    foreground: '#e8e8e8',
+    promptColor: 'cyan',
+    responseColor: 'rgb(180 180 180)',
+    fontFamily: '"Fira Code", monospace',
+    fontSize: '1.1rem',
+    padding: '2em',
+  }}
+/>
+```
+
+| Key             | What it colours or sets                        | Default                                       |
+| --------------- | ---------------------------------------------- | --------------------------------------------- |
+| `background`    | The whole terminal                             | `black`                                       |
+| `foreground`    | What you type, in the history too, and help    | `white`                                       |
+| `promptColor`   | The prompt, and the example commands in `help` | `#00ff00`                                     |
+| `responseColor` | What a command answered                        | `#cccccc`                                     |
+| `fontFamily`    | Everything, the input included                 | `'Menlo', 'Monaco', 'Courier New', monospace` |
+| `fontSize`      | Everything, the input included                 | `14px`                                        |
+| `padding`       | The space around the whole terminal            | `20px`                                        |
+
+### Size
+
+By default the terminal fills the viewport: the full width of its parent and
+`100vh` tall. Pass `size` to put it in a box on a page instead. Both keys are
+optional and take any CSS length.
+
+```jsx
+<Terminal commands={commands} size={{ width: '600px', height: '400px' }} />
+```
+
+The box scrolls, not the page, so a long history stays inside it either way.
+
+### Styling
+
+Import `kanza/style.css` and you are done. The look is settable through props
+only: [Cursor](#cursor), [Theme](#theme) and [Size](#size). The stylesheet
+itself is internal, so no class names are part of the API and nothing in it is
+yours to override.
+
+What you render is still yours. A command's response and a screen are
+`ReactNode`, so anything you put in there you style yourself, the normal way.
+
+## When something is wrong
+
+### Mistakes reported in the console
 
 Some mistakes leave a command quietly unreachable, so the terminal checks for
 them and reports them with `console.error` when it renders:
@@ -397,78 +466,25 @@ them and reports them with `console.error` when it renders:
 - A flag name that is empty, starts with a dash, or contains a space or an `=`.
 - A `short` that is not a single letter.
 
-One mistake is reported in the terminal instead, when you run the command, and
-the command does not run at all:
+### Mistakes reported in the terminal
+
+Two flags cannot share one short form, so the command refuses to run until you
+fix it. Set `short` on one of them.
+
+When both flags declared the same letter, the message names it:
 
 ```
 > add
 kanza: --name and --number both use -n. A short form belongs to one flag.
 ```
 
-That happens when two flags claim the same short form, either because both
-declared it or because both would take the same first letter. Set `short` on
-one of them.
-
-## Declaring flags
-
-Say nothing and any flag is accepted. Declare them and you get short forms,
-descriptions in `help`, and an error on a typo.
-
-```js
-const commands = {
-  add: {
-    flags: {
-      name: { description: 'The name' }, // -n, automatic
-      number: { short: 'u' }, // -n is taken, so pick another letter
-      city: {}, // -c, no description
-    },
-    handle: ({ flags }) => `Added ${flags.name}`,
-    help: { example: 'add --name John', description: 'Add a person' },
-  },
-}
-```
-
-Short forms are the first letter of the name. An explicit `short` always wins,
-so the flag that would have taken that letter quietly goes without one.
-
-Once a command declares flags, the dashes mean something:
-
-| Typed          | Result                     |
-| -------------- | -------------------------- |
-| `add --name J` | ✓                          |
-| `add -n J`     | ✓, arrives as `flags.name` |
-| `add --n J`    | ✗ `Unknown flag: --n`      |
-| `add -name J`  | ✗ `Unknown flag: -name`    |
-
-Keys are always the long name, so `-n John` arrives as `{ name: 'John' }`.
-
-An unknown flag stops the command:
-
-```
-> add --nmae John
-Unknown flag: --nmae
-Available flags: --name (-n), --city (-c)
-```
-
-Two flags wanting the same letter is a mistake in your own command, so neither
-gets a short form and the command refuses to run until you fix it:
+When they only collide because they start with the same letter, neither gets a
+short form:
 
 ```
 > add
 kanza: --name and --number both want -n. Neither gets a short form. Set `short` on one.
 ```
-
-Declaring flags does not type them. `flags.name` is still `string | boolean`.
-
-## Styling
-
-Import `kanza/style.css` and you are done. The look is settable through props
-only: [Cursor](#cursor), [Theme](#theme) and [Size](#size). The stylesheet
-itself is internal, so no class names are part of the API and nothing in it is
-yours to override.
-
-What you render is still yours. A command's response and a screen are
-`ReactNode`, so anything you put in there you style yourself, the normal way.
 
 ## Development
 
@@ -526,7 +542,7 @@ run it again after every library change. There is no HMR against the source: tha
 needs a second demo app, and keeping two of them in step turned out to cost more
 than the rebuild does.
 
-## Publish to npm
+### Publish to npm
 
 ```bash
 ./publish.sh patch   # or minor, or major
