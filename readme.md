@@ -48,7 +48,10 @@ take it over.
 Everything here is code you write. What the terminal does on its own is in
 [What your users get for free](#what-your-users-get-for-free).
 
-### Commands
+### What a command is
+
+A command is a name and a `handle` function. What that function returns is what
+the terminal prints.
 
 ```js
 const commands = {
@@ -184,6 +187,9 @@ Available flags: --name (-n), --city (-c)
 
 Declaring flags does not type them. `flags.name` is still `string | boolean`.
 
+Two flags cannot share one short form. See
+[Mistakes reported in the terminal](#mistakes-reported-in-the-terminal).
+
 ### Async commands
 
 Return a promise and the terminal shows an animated marker until it settles.
@@ -275,7 +281,8 @@ A few smaller things:
 
 ### Programs you stay in
 
-`commands` and `prompt` are props, so a REPL needs nothing from the library.
+`commands` and [`prompt`](#prompt-and-welcome) are props, so a REPL needs
+nothing from the library.
 Swap both and everything else keeps working: only the inner commands exist,
 `help` lists only those, and the history keeps the prompt each line was typed
 at.
@@ -331,7 +338,7 @@ anything else starts a new search.
 
 ### Ctrl+C
 
-It gives up on the running command. That line becomes `Cancelled`, and a result
+Ctrl+C gives up on the running command. That line becomes `Cancelled`, and a result
 that arrives afterwards is ignored.
 
 ```
@@ -356,6 +363,16 @@ Two more details:
   still works.
 
 ## Making it look right
+
+### Styling
+
+Import `kanza/style.css` and you are done. The look is settable through props
+only: [Cursor](#cursor), [Theme](#theme) and [Size](#size). The stylesheet
+itself is internal, so no class names are part of the API and nothing in it is
+yours to override.
+
+What you render is still yours. A command's response and a screen are
+`ReactNode`, so anything you put in there you style yourself, the normal way.
 
 ### Prompt and welcome
 
@@ -443,17 +460,10 @@ optional and take any CSS length.
 
 The box scrolls, not the page, so a long history stays inside it either way.
 
-### Styling
-
-Import `kanza/style.css` and you are done. The look is settable through props
-only: [Cursor](#cursor), [Theme](#theme) and [Size](#size). The stylesheet
-itself is internal, so no class names are part of the API and nothing in it is
-yours to override.
-
-What you render is still yours. A command's response and a screen are
-`ReactNode`, so anything you put in there you style yourself, the normal way.
-
 ## When something is wrong
+
+Mistakes in your own command definitions, not the errors a command throws. Those
+are in [Failing](#failing).
 
 ### Mistakes reported in the console
 
