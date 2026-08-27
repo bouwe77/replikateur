@@ -68,8 +68,9 @@
   outline: none;
 }
 
+/* No margin of its own: help is a response like any other, so the spacing
+   around it comes from .historyResponse and .historyItem. */
 .helpContainer {
-  margin: 10px 0;
   color: white;
 }
 
