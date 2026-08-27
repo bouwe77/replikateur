@@ -151,7 +151,28 @@ const commands = {
 }
 ```
 
-A command name is one word, so it cannot contain a space.
+## Subcommands
+
+A command name may be more than one word, so `user add` is a command of its
+own, with its own flags and its own help.
+
+```js
+const commands = {
+  user: { handle: () => 'Try: user add <name>' },
+  'user add': {
+    handle: ({ input }) => `Added ${input}`,
+    help: { example: 'user add <name>', description: 'Add a user' },
+  },
+}
+```
+
+The longest name that matches wins, so `user add bob` runs `user add` with
+`bob` behind it, while `user list` runs `user` with `list` behind it. Watch out
+for this when a command already reads its own first word: adding `user add`
+later takes that word away from `user`.
+
+The name has to come first, so `user --json add` reads as the `user` command
+with a flag, the same as in any other shell.
 
 ## Command arguments
 
@@ -370,8 +391,8 @@ Two more details:
 Some mistakes leave a command quietly unreachable, so the terminal checks for
 them and reports them with `console.error` when it renders:
 
-- A command name that is empty, has a space in it, or starts with a dash. None
-  of these can ever be typed.
+- A command name that is empty, has a word starting with a dash, or is not
+  spaced with single spaces. None of these can ever be typed.
 - A command without a `handle` function.
 - A flag name that is empty, starts with a dash, or contains a space or an `=`.
 - A `short` that is not a single letter.

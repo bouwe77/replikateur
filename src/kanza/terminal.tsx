@@ -53,8 +53,6 @@ export type CommandDefinition = {
 
 export type Commands = {
   [key: string]: CommandDefinition
-} & {
-  [key: `${string} ${string}`]: never
 }
 
 export type HistoryItem = {
@@ -162,14 +160,34 @@ type RawFlag = {
   value: string | boolean
 }
 
-// Splits a command line into its name, the words behind it, and its flags, without
-// looking at any declaration yet. The command is only known after this runs.
+// Only own keys count, so a name like "constructor" cannot reach something on
+// Object's prototype.
+const findCommand = (commands: Commands, name: string) =>
+  Object.hasOwn(commands, name) ? commands[name] : undefined
+
+// How many of the typed words are the command name. The longest match wins, so
+// "user add" is one command when it is declared, and stays "user" with "add" as
+// its first word when it is not. No match at all means one word, which is what
+// the "Unknown command" message needs.
+const commandNameLength = (words: string[], commands: Commands) => {
+  for (let length = words.length; length > 1; length--) {
+    if (findCommand(commands, words.slice(0, length).join(' '))) return length
+  }
+
+  return 1
+}
+
+// Splits a command line into its name, the words behind it, and its flags. Only
+// the name needs the declarations, to see how many words it spans.
 //
 // Without flags, everything behind the name is one string, also available as an
 // array of words. With flags, a flag separates the words: every word after a
 // flag belongs to that flag, until the next flag or the end of the line.
-const parseCommandInput = (commandLine: string) => {
-  const [commandName, ...tokens] = commandLine.split(/\s+/)
+const parseCommandInput = (commandLine: string, commands: Commands) => {
+  const words = commandLine.split(/\s+/)
+  const nameLength = commandNameLength(words, commands)
+  const commandName = words.slice(0, nameLength).join(' ')
+  const tokens = words.slice(nameLength)
 
   const inputWords: string[] = []
   const rawFlags: RawFlag[] = []
@@ -300,18 +318,27 @@ const unknownFlagError = (
 }
 
 // Mistakes in a command definition that make it unreachable or unusable. These
-// cannot wait until the command runs, because a name with a space in it never
-// matches anything you type, so they go to the console as the Terminal renders.
+// cannot wait until the command runs, because a name that starts with a dash
+// never matches anything you type, so they go to the console as the Terminal
+// renders.
 const commandProblems = (commands: Commands) => {
   const problems: string[] = []
 
   for (const [name, definition] of Object.entries(commands)) {
+    // A name may span several words, for a subcommand like "user add", but the
+    // words have to be the ones a single space between them would give you.
+    const words = name.split(/\s+/)
+
     if (name === '') {
       problems.push('A command has an empty name.')
-    } else if (/\s/.test(name)) {
-      problems.push(`"${name}" has a space in it, so it can never be typed.`)
-    } else if (FLAG_TOKEN.test(name)) {
-      problems.push(`"${name}" starts with a dash, so it reads as a flag.`)
+    } else if (name !== words.join(' ')) {
+      problems.push(
+        `"${name}" is not spaced with single spaces, so it can never be typed.`,
+      )
+    } else if (words.some((word) => FLAG_TOKEN.test(word))) {
+      problems.push(
+        `"${name}" has a word starting with a dash, so it reads as a flag.`,
+      )
     }
 
     if (typeof definition?.handle !== 'function') {
@@ -650,8 +677,11 @@ export const Terminal = ({
 
   // Works out what a line should put in the history, without running anything else.
   const responseFor = (trimmed: string): CommandOutcome => {
-    const { commandName, input, args, rawFlags } = parseCommandInput(trimmed)
-    const cmdDef = commands[commandName]
+    const { commandName, input, args, rawFlags } = parseCommandInput(
+      trimmed,
+      commands,
+    )
+    const cmdDef = findCommand(commands, commandName)
 
     if (cmdDef) {
       const resolved = resolveFlags(rawFlags, cmdDef.flags)
@@ -685,7 +715,7 @@ export const Terminal = ({
         }
       }
 
-      const wanted = virtualCommands[input]
+      const wanted = findCommand(virtualCommands, input)
 
       if (!wanted) return { response: `Unknown command: ${input}` }
       if (!wanted.help) return { response: `No help for "${input}"` }

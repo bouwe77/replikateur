@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react'
 
 const FLAVOURS = ['Chocolate', 'Strawberry', 'Blueberry', 'Snozzberry']
 
+// Somewhere for the user subcommands to keep what you add, for as long as the
+// page is open.
+const users = []
+
 const KEYS = ['ArrowDown', 'ArrowUp', 'Enter', 'q', 'Escape']
 
 // Written by hand, on purpose. A screen is a plain React component: it knows
@@ -87,6 +91,34 @@ const commands = {
       example: 'add --name John Doe --city New York',
       description: 'Add a person, using flags for the values',
     },
+  },
+
+  // A subcommand: the name is two words, so "user add" is its own command with
+  // its own flags and its own help. The longest name that matches wins, which
+  // is why "user add bob" does not end up at "user".
+  user: {
+    handle: () => 'Try "user add <name>" or "user list".',
+    help: { example: 'user', description: 'What you can do with users' },
+  },
+
+  'user add': {
+    flags: { admin: { description: 'Make them an admin' } },
+    handle: ({ input, flags }) => {
+      if (!input) return 'Who should I add? For example: user add Bob'
+
+      users.push(flags.admin ? `${input} (admin)` : input)
+
+      return `Added ${input}`
+    },
+    help: {
+      example: 'user add Bob --admin',
+      description: 'Add a user, an admin one if you like',
+    },
+  },
+
+  'user list': {
+    handle: () => (users.length ? users.join('\n') : 'Nobody here yet.'),
+    help: { example: 'user list', description: 'List everyone you added' },
   },
 
   // Not async on purpose: bad input throws straight away, which is a sync throw,

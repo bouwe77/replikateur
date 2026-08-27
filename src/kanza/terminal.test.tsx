@@ -1040,6 +1040,84 @@ describe('Ctrl+C on an idle prompt', () => {
   })
 })
 
+describe('Subcommands', () => {
+  const received = vi.fn()
+
+  const commands: Commands = {
+    user: {
+      handle: () => 'the user command',
+      help: { example: 'user', description: 'The user itself' },
+    },
+    'user add': {
+      flags: { force: { description: 'Do it anyway' } },
+      handle: (handlerArgs) => {
+        received(handlerArgs)
+        return 'added'
+      },
+      help: { example: 'user add <name>', description: 'Add a user' },
+    },
+  }
+
+  const type = async (commandLine: string) => {
+    const user = userEvent.setup()
+    const input = screen.getByRole('textbox', { name: /command/i })
+    await user.type(input, `${commandLine}{enter}`)
+  }
+
+  beforeEach(() => {
+    received.mockClear()
+  })
+
+  test('runs the longest matching name', async () => {
+    render(<Terminal commands={commands} />)
+
+    await type('user add bob')
+
+    expect(screen.getByText('added')).toBeInTheDocument()
+
+    const { input, args, rawInput } = received.mock
+      .lastCall?.[0] as CommandHandlerArgs
+    expect(input).toBe('bob')
+    expect(args).toEqual(['bob'])
+    expect(rawInput).toBe('user add bob')
+  })
+
+  test('falls back to the shorter name when the longer one does not match', async () => {
+    render(<Terminal commands={commands} />)
+
+    await type('user remove bob')
+
+    expect(screen.getByText('the user command')).toBeInTheDocument()
+  })
+
+  test('reads flags of the subcommand, not of the shorter name', async () => {
+    render(<Terminal commands={commands} />)
+
+    await type('user add bob --force')
+
+    const { flags } = received.mock.lastCall?.[0] as CommandHandlerArgs
+    expect(flags).toEqual({ force: true })
+  })
+
+  test('shows help for a subcommand', async () => {
+    render(<Terminal commands={commands} />)
+
+    await type('help user add')
+
+    const log = screen.getByRole('log')
+    expect(log).toHaveTextContent('user add <name> - Add a user')
+    expect(log).not.toHaveTextContent('The user itself')
+  })
+
+  test('does not run a subcommand by its first word alone', async () => {
+    render(<Terminal commands={{ 'user add': { handle: () => 'added' } }} />)
+
+    await type('user')
+
+    expect(screen.getByText('Unknown command: user')).toBeInTheDocument()
+  })
+})
+
 describe('Mistakes in a command definition', () => {
   const problems = () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -1049,16 +1127,23 @@ describe('Mistakes in a command definition', () => {
     }
   }
 
-  test('reports a command name with a space in it', () => {
+  test('reports a command name that is not spaced with single spaces', () => {
     const { spy, messages } = problems()
 
-    // TypeScript refuses this, which is the point: only a JavaScript user can
-    // get here, so the double assertion is how the test reaches the check.
-    const broken = { 'no good': { handle: () => 'x' } } as unknown as Commands
+    render(<Terminal commands={{ 'user  add': { handle: () => 'x' } }} />)
 
-    render(<Terminal commands={broken} />)
+    expect(messages().join('\n')).toContain(
+      '"user  add" is not spaced with single spaces',
+    )
+    spy.mockRestore()
+  })
 
-    expect(messages().join('\n')).toContain('"no good" has a space in it')
+  test('reports a word of a command name that starts with a dash', () => {
+    const { spy, messages } = problems()
+
+    render(<Terminal commands={{ 'user -x': { handle: () => 'x' } }} />)
+
+    expect(messages().join('\n')).toContain('reads as a flag')
     spy.mockRestore()
   })
 
