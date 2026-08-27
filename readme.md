@@ -571,8 +571,8 @@ npm run build
 
 This type checks the project and builds the library into `dist`:
 
-| File         | What it is                       |
-| ------------ | -------------------------------- |
+| File               | What it is                       |
+| ------------------ | -------------------------------- |
 | `replikateur.js`   | The library, ES module           |
 | `replikateur.css`  | The styles, must be imported too |
 | `replikateur.d.ts` | The TypeScript types             |
@@ -607,10 +607,14 @@ what people actually get when they install the library.
 That builds the library and the embed script, and starts the app on
 http://localhost:5173. There are two pages, and they link to each other:
 
-| Page          | What it is                                                  |
-| ------------- | ----------------------------------------------------------- |
-| `/`           | A React app, with a panel to change every prop live          |
+| Page          | What it is                                                         |
+| ------------- | ------------------------------------------------------------------ |
+| `/`           | A React app, with a panel to change every prop live                |
 | `/embed.html` | A plain page with one `<script>` tag and `window.Replikateur.init` |
+
+The embed page has a `bundle:` switch. Flip it to `unpkg` and the page reloads
+with `?src=unpkg`, running the same demo against the published bundle on unpkg
+instead of your local `dist` build. Handy to check what people actually get.
 
 Try `help`, `clear`, and the commands in `demo/commands.jsx`. The two pages do
 not share their commands: the React ones return JSX, which needs the app's own

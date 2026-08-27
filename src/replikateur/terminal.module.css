@@ -84,6 +84,11 @@
    around it comes from .historyResponse and .historyItem. */
 .helpContainer {
   color: var(--replikateur-foreground, white);
+
+  /* Indents every line except the first one, the heading. Wrapped lines keep
+     the indent, so a long description stays lined up under its command. */
+  padding-left: 1em;
+  text-indent: -1em;
 }
 
 .helpExample {
@@ -92,8 +97,9 @@
 
 .helpFlag {
   display: inline-block;
-  padding-left: 2em;
-  min-width: 14em;
+  text-indent: 0;
+  padding-left: 1em;
+  min-width: 13em;
   box-sizing: border-box;
 }
 

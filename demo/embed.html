@@ -22,6 +22,13 @@
         font-size: 13px;
       }
 
+      .bar .title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #9fd;
+        margin-right: 32px;
+      }
+
       .bar button {
         padding: 6px 10px;
         background: #262626;
@@ -32,8 +39,48 @@
         font: inherit;
       }
 
-      .bar a {
+      .bar button:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+
+      /* Two radios drawn as one switch: the checked half lights up. */
+      .switch {
+        display: flex;
+        border: 1px solid #444;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+
+      .switch input {
+        position: absolute;
+        opacity: 0;
+      }
+
+      .switch span {
+        display: block;
+        padding: 6px 10px;
+        background: #262626;
+        cursor: pointer;
+      }
+
+      .switch input:checked + span {
+        background: #3a3a3a;
+        color: #9fd;
+      }
+
+      .switch input:focus-visible + span {
+        outline: 2px solid #9fd;
+        outline-offset: -2px;
+      }
+
+      /* Pushes the buttons and the link to the right of the bar. */
+      #green {
         margin-left: auto;
+      }
+
+      .bar a {
+        margin-left: 24px;
         color: #9fd;
       }
     </style>
@@ -44,61 +91,119 @@
       their own. The bundle comes from ../dist here, from a CDN on a real page.
     -->
     <div class="bar">
-      <span>embed demo</span>
+      <span class="title">embed demo</span>
+      <span>bundle:</span>
+      <span class="switch">
+        <label>
+          <input type="radio" name="bundle" value="local" />
+          <span>local dist</span>
+        </label>
+        <label>
+          <input type="radio" name="bundle" value="unpkg" />
+          <span>unpkg</span>
+        </label>
+      </span>
       <button id="green">update() to green</button>
-      <button id="off">unmount()</button>
+      <button id="mount">unmount()</button>
       <a href="/">to the React demo</a>
     </div>
 
     <div id="terminal"></div>
 
-    <script src="/replikateur.embed.js"></script>
     <script>
-      // No JSX here, so responses are strings. That is the whole difference
-      // with the React demo: the props and the commands are the same shape.
-      const commands = {
-        hello: {
-          handle: () => 'Hello to you too :)',
-          help: { example: 'hello', description: 'Say hello' },
-        },
-        echo: {
-          handle: ({ input }) => input || 'Nothing to echo.',
-          help: { example: 'echo <text>', description: 'Say it back' },
-        },
-        wait: {
-          handle: async () => {
-            await new Promise((resolve) => setTimeout(resolve, 1000))
-            return 'That took a second.'
-          },
-          help: { example: 'wait', description: 'An async command' },
-        },
-        greet: {
-          flags: { loud: { description: 'Shout it' } },
-          handle: ({ args, flags }) => {
-            const greeting = `Hello ${args[0] ?? 'stranger'}`
-            return flags.loud ? greeting.toUpperCase() + '!' : greeting
-          },
-          help: { example: 'greet <name> --loud', description: 'Greet someone' },
-        },
+      // ?src=unpkg loads the published bundle from the CDN, anything else the
+      // local dist build. The demo code below only runs once it has loaded.
+      const unpkg = new URLSearchParams(location.search).get('src') === 'unpkg'
+      for (const radio of document.querySelectorAll('input[name="bundle"]')) {
+        radio.checked = (radio.value === 'unpkg') === unpkg
+        radio.onchange = () => {
+          location.search = radio.value === 'unpkg' ? '?src=unpkg' : ''
+        }
       }
 
-      const props = {
-        commands,
-        prompt: '$',
-        welcome: 'This terminal was embedded with a script tag. Type "help".',
-        theme: { background: '#1a0033', foreground: '#f6e9ff' },
-        size: { height: 'calc(100vh - 45px)' },
+      const script = document.createElement('script')
+      script.src = unpkg
+        ? 'https://unpkg.com/replikateur/dist/replikateur.embed.js'
+        : '/replikateur.embed.js'
+      script.onerror = () => {
+        document.getElementById('terminal').textContent =
+          `Could not load ${script.src}`
       }
+      script.onload = start
+      document.head.append(script)
 
-      const terminal = window.Replikateur.init({ target: '#terminal', ...props })
+      function start() {
+        // No JSX here, so responses are strings. That is the whole difference
+        // with the React demo: the props and the commands are the same shape.
+        const commands = {
+          hello: {
+            handle: () => 'Hello to you too :)',
+            help: { example: 'hello', description: 'Say hello' },
+          },
+          echo: {
+            handle: ({ input }) => input || 'Nothing to echo.',
+            help: { example: 'echo <text>', description: 'Say it back' },
+          },
+          wait: {
+            handle: async () => {
+              await new Promise((resolve) => setTimeout(resolve, 1000))
+              return 'That took a second.'
+            },
+            help: { example: 'wait', description: 'An async command' },
+          },
+          greet: {
+            flags: { loud: { description: 'Shout it' } },
+            handle: ({ args, flags }) => {
+              const greeting = `Hello ${args[0] ?? 'stranger'}`
+              return flags.loud ? greeting.toUpperCase() + '!' : greeting
+            },
+            help: {
+              example: 'greet <name> --loud',
+              description: 'Greet someone',
+            },
+          },
+        }
 
-      document.getElementById('green').onclick = () =>
-        terminal.update({
-          ...props,
-          theme: { background: '#001a0d', foreground: '#b9ffd9' },
-        })
+        const props = {
+          commands,
+          prompt: '$',
+          welcome: 'This terminal was embedded with a script tag. Type "help".',
+          theme: { background: '#1a0033', foreground: '#f6e9ff' },
+          size: { height: 'calc(100vh - 45px)' },
+        }
 
-      document.getElementById('off').onclick = () => terminal.unmount()
+        const mount = () =>
+          window.Replikateur.init({ target: '#terminal', ...props })
+
+        let terminal = mount()
+
+        const green = document.getElementById('green')
+        const mountButton = document.getElementById('mount')
+
+        // Without a terminal there is nothing to update, so only the mount
+        // button stays usable. The bundle dropdown reloads the page anyway.
+        const showState = () => {
+          mountButton.textContent = terminal ? 'unmount()' : 'init()'
+          green.disabled = !terminal
+        }
+        showState()
+
+        green.onclick = () =>
+          terminal.update({
+            ...props,
+            theme: { background: '#001a0d', foreground: '#b9ffd9' },
+          })
+
+        mountButton.onclick = () => {
+          if (terminal) {
+            terminal.unmount()
+            terminal = null
+          } else {
+            terminal = mount()
+          }
+          showState()
+        }
+      }
     </script>
   </body>
 </html>
