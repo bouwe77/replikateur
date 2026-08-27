@@ -264,6 +264,18 @@ This is not what a shell does, since a shell buffers your line and runs it when
 the prompt returns. Keeping the text on the prompt makes it visible that it has
 not run yet.
 
+## History
+
+Arrow up walks back through the commands you typed, and arrow down walks forward
+again. If the line is empty you get the whole history.
+
+If you already typed something, the arrows only walk through the commands that
+start with it. So after `help`, `clear` and `hello`, typing `he` and pressing
+arrow up gives you `hello`, then `help`, and never `clear`. The filter is what
+you typed before the first arrow up, and it stays the same while you keep
+walking. Arrow down past the newest match puts your own text back. Typing
+anything else starts a new search.
+
 ## Ctrl+C
 
 It gives up on the running command. That line becomes `Cancelled`, and a result

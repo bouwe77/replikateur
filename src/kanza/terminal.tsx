@@ -494,6 +494,9 @@ const CommandInput = ({
   const cx = classNames(classes)
   const commandInputRef = useRef<HTMLInputElement>(null)
   const [historyPointer, setHistoryPointer] = useState(-1)
+  // What was typed before the first Up, so the recall stays filtered on it while
+  // you keep walking. Like zsh's history-beginning-search and fish.
+  const [searchPrefix, setSearchPrefix] = useState('')
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     const input = e.currentTarget
@@ -516,13 +519,19 @@ const CommandInput = ({
 
     if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
 
-    const recallable = history.filter((item) => !item.isInterrupt)
+    // A fresh walk starts from whatever is on the line right now.
+    const prefix = historyPointer === -1 ? input.value : searchPrefix
+
+    const recallable = history.filter(
+      (item) => !item.isInterrupt && item.rawInput.startsWith(prefix),
+    )
     if (recallable.length === 0) return
 
     e.preventDefault()
+    setSearchPrefix(prefix)
 
-    // Up walks back through the history, down walks forward again, and -1 is the
-    // empty line you started on. Writing `value` puts the caret at the end.
+    // Up walks back through the matches, down walks forward again, and -1 is the
+    // line you started on. Writing `value` puts the caret at the end.
     const step = e.key === 'ArrowUp' ? 1 : -1
     const next = Math.min(
       Math.max(historyPointer + step, -1),
@@ -530,7 +539,8 @@ const CommandInput = ({
     )
 
     setHistoryPointer(next)
-    input.value = next === -1 ? '' : (recallable.at(-1 - next)?.rawInput ?? '')
+    input.value =
+      next === -1 ? prefix : (recallable.at(-1 - next)?.rawInput ?? '')
   }
 
   const handleFormSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
@@ -554,6 +564,8 @@ const CommandInput = ({
         ref={commandInputRef}
         className={cx('cursor')}
         onKeyDown={handleKeyDown}
+        // Typing anything ends the current walk, so the next Up filters again.
+        onChange={() => setHistoryPointer(-1)}
         autoComplete="off"
         spellCheck="false"
       />

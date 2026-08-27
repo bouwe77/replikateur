@@ -195,6 +195,39 @@ describe('Terminal Component', () => {
     expect(input).toHaveValue('')
   })
 
+  test('filters history by what is already typed', async () => {
+    const user = userEvent.setup()
+    render(<Terminal commands={mockCommands} />)
+    const input = screen.getByRole('textbox', { name: /command/i })
+
+    await user.type(input, 'help{enter}')
+    await user.type(input, 'clear{enter}')
+    await user.type(input, 'hello{enter}')
+
+    await user.type(input, 'he')
+    await user.type(input, '{arrowup}')
+    expect(input).toHaveValue('hello')
+
+    await user.type(input, '{arrowup}')
+    expect(input).toHaveValue('help')
+
+    // No older match, so it stays put.
+    await user.type(input, '{arrowup}')
+    expect(input).toHaveValue('help')
+
+    // Walking forward past the newest match restores what was typed.
+    await user.type(input, '{arrowdown}')
+    expect(input).toHaveValue('hello')
+
+    await user.type(input, '{arrowdown}')
+    expect(input).toHaveValue('he')
+
+    // Typing again starts a new search with the new prefix.
+    await user.clear(input)
+    await user.type(input, 'c{arrowup}')
+    expect(input).toHaveValue('clear')
+  })
+
   test('places cursor at end of text on history recall', async () => {
     const user = userEvent.setup()
     render(<Terminal commands={mockCommands} />)
