@@ -46,7 +46,7 @@ take it over.
 ## Writing commands
 
 Everything here is code you write. What the terminal does on its own is in
-[What your users get for free](#what-your-users-get-for-free).
+[Behaviour](#behaviour).
 
 ### What a command is
 
@@ -309,7 +309,7 @@ oompa> exit
 >
 ```
 
-## What your users get for free
+## Behaviour
 
 You do not configure any of this. It is what the terminal gives the people who
 type in it.
@@ -362,7 +362,7 @@ Two more details:
 - It only interrupts when nothing is selected, so copying from the terminal
   still works.
 
-## Making it look right
+## Appearance
 
 ### Styling
 
@@ -460,7 +460,7 @@ optional and take any CSS length.
 
 The box scrolls, not the page, so a long history stays inside it either way.
 
-## When something is wrong
+## Troubleshooting
 
 Mistakes in your own command definitions, not the errors a command throws. Those
 are in [Failing](#failing).
