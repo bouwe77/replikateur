@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>kanza embed demo</title>
+    <style>
+      body {
+        margin: 0;
+        background: #0d0d0d;
+        color: #e6e6e6;
+        font-family: system-ui, sans-serif;
+      }
+
+      .bar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 16px;
+        background: #161616;
+        border-bottom: 1px solid #333;
+        font-size: 13px;
+      }
+
+      .bar button {
+        padding: 6px 10px;
+        background: #262626;
+        color: inherit;
+        border: 1px solid #444;
+        border-radius: 4px;
+        cursor: pointer;
+        font: inherit;
+      }
+
+      .bar a {
+        margin-left: auto;
+        color: #9fd;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      The plain page a consumer writes: one script tag, no bundler, no React of
+      their own. The bundle comes from ../dist here, from a CDN on a real page.
+    -->
+    <div class="bar">
+      <span>embed demo</span>
+      <button id="green">update() to green</button>
+      <button id="off">unmount()</button>
+      <a href="/">to the React demo</a>
+    </div>
+
+    <div id="terminal"></div>
+
+    <script src="/kanza.embed.js"></script>
+    <script>
+      // No JSX here, so responses are strings. That is the whole difference
+      // with the React demo: the props and the commands are the same shape.
+      const commands = {
+        hello: {
+          handle: () => 'Hello to you too :)',
+          help: { example: 'hello', description: 'Say hello' },
+        },
+        echo: {
+          handle: ({ input }) => input || 'Nothing to echo.',
+          help: { example: 'echo <text>', description: 'Say it back' },
+        },
+        wait: {
+          handle: async () => {
+            await new Promise((resolve) => setTimeout(resolve, 1000))
+            return 'That took a second.'
+          },
+          help: { example: 'wait', description: 'An async command' },
+        },
+        greet: {
+          flags: { loud: { description: 'Shout it' } },
+          handle: ({ args, flags }) => {
+            const greeting = `Hello ${args[0] ?? 'stranger'}`
+            return flags.loud ? greeting.toUpperCase() + '!' : greeting
+          },
+          help: { example: 'greet <name> --loud', description: 'Greet someone' },
+        },
+      }
+
+      const props = {
+        commands,
+        prompt: '$',
+        welcome: 'This terminal was embedded with a script tag. Type "help".',
+        theme: { background: '#1a0033', foreground: '#f6e9ff' },
+        size: { height: 'calc(100vh - 45px)' },
+      }
+
+      const terminal = window.Kanza.init({ target: '#terminal', ...props })
+
+      document.getElementById('green').onclick = () =>
+        terminal.update({
+          ...props,
+          theme: { background: '#001a0d', foreground: '#b9ffd9' },
+        })
+
+      document.getElementById('off').onclick = () => terminal.unmount()
+    </script>
+  </body>
+</html>

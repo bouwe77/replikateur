@@ -158,6 +158,14 @@ const App = () => {
         <h1>kanza settings</h1>
         <p>Everything here is a prop. Change it and the terminal follows.</p>
 
+        <p>
+          The same library without React and without a bundler:{' '}
+          <a href="/embed.html" style={{ color: '#9fd' }}>
+            the embed demo
+          </a>
+          .
+        </p>
+
         {FIELDS.map((field) => (
           <Field
             key={field.key}

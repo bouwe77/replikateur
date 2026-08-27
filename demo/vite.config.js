@@ -8,4 +8,8 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: { fs: { allow: ['..'] } },
+
+  // Serves ../dist as static files, so embed.html can load the embed bundle
+  // from /kanza.embed.js the same way a <script> tag on a real page does.
+  publicDir: '../dist',
 })
