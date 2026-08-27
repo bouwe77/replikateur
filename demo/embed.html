@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kanza embed demo</title>
+    <title>replikateur embed demo</title>
     <style>
       body {
         margin: 0;
@@ -52,7 +52,7 @@
 
     <div id="terminal"></div>
 
-    <script src="/kanza.embed.js"></script>
+    <script src="/replikateur.embed.js"></script>
     <script>
       // No JSX here, so responses are strings. That is the whole difference
       // with the React demo: the props and the commands are the same shape.
@@ -90,7 +90,7 @@
         size: { height: 'calc(100vh - 45px)' },
       }
 
-      const terminal = window.Kanza.init({ target: '#terminal', ...props })
+      const terminal = window.Replikateur.init({ target: '#terminal', ...props })
 
       document.getElementById('green').onclick = () =>
         terminal.update({

@@ -30,4 +30,4 @@ npm publish --access public
 echo "pusher git tags..."
 git push --follow-tags
 
-echo "✅ Kanza published successfully!"
+echo "✅ Replikateur published successfully!"

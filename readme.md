@@ -1,31 +1,27 @@
-# Kanza
+# Replikateur
 
 **A lightweight, customizable terminal emulator component for React.**
 
 A terminal in a React component. You bring the commands.
 
-## Kanza?
+## Replikateur?
 
-> _"Kanza, at the time of the ripening"_
-
-From the Star Trek: The Next Generation episode
-[Darmok](https://memory-alpha.fandom.com/wiki/Kanza). In Tamarian it marks the
-moment something is grown and ready to use, like a terminal that has finished
-loading and is waiting for your command.
+German and French for "replicator", the Star Trek machine that makes what you
+ask it for. You type a command, something appears.
 
 ## Getting started
 
 ### Install
 
 ```bash
-npm install kanza
+npm install replikateur
 ```
 
 ### Usage
 
 ```jsx
-import { Terminal } from 'kanza'
-import 'kanza/style.css'
+import { Terminal } from 'replikateur'
+import 'replikateur/style.css'
 
 const commands = {
   hello: {
@@ -46,28 +42,28 @@ take it over.
 ### Without a build step
 
 There is a second build: one JavaScript file with React, the component and the
-styles inside it. You drop it in a `<script>` tag and call `window.Kanza.init`.
+styles inside it. You drop it in a `<script>` tag and call `window.Replikateur.init`.
 Nothing to install, no bundler.
 
 Every npm package is served by public CDNs, so the file is a URL as soon as a
 version is published:
 
 ```
-https://cdn.jsdelivr.net/npm/kanza/dist/kanza.embed.js
-https://unpkg.com/kanza/dist/kanza.embed.js
+https://cdn.jsdelivr.net/npm/replikateur/dist/replikateur.embed.js
+https://unpkg.com/replikateur/dist/replikateur.embed.js
 ```
 
 Those URLs give you the newest version. Pin one in production, so a new release
 cannot change your page without you: put `@` and a version number after the
-name, like `kanza@1.2.3/dist/kanza.embed.js`. The version numbers are on
-[npmjs.com/package/kanza](https://www.npmjs.com/package/kanza).
+name, like `replikateur@1.2.3/dist/replikateur.embed.js`. The version numbers are on
+[npmjs.com/package/replikateur](https://www.npmjs.com/package/replikateur).
 
 ```html
 <div id="terminal"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/kanza/dist/kanza.embed.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/replikateur/dist/replikateur.embed.js"></script>
 <script>
-  const terminal = window.Kanza.init({
+  const terminal = window.Replikateur.init({
     target: '#terminal',
     commands: {
       hello: {
@@ -93,8 +89,8 @@ Calling `init` twice on the same element does not build a second terminal. It
 reuses the first one and renders it with the new props, the same as `update`.
 
 People who prefer to host the file themselves can download it from the CDN
-link, or take `node_modules/kanza/dist/kanza.embed.js` after `npm install
-kanza`.
+link, or take `node_modules/replikateur/dist/replikateur.embed.js` after `npm install
+replikateur`.
 
 ## Writing commands
 
@@ -298,7 +294,7 @@ alternate screen a real terminal switches to for `vim` or `less`.
 
 Every handler gets a `screen` with `open` and `close`. You decide how your
 component gets its way out, so it stays a plain React component that knows nothing
-about Kanza.
+about Replikateur.
 
 ```jsx
 const commands = {
@@ -308,15 +304,15 @@ const commands = {
 }
 ```
 
-Kanza only owns the screen itself: it fills the terminal, so your component
+Replikateur only owns the screen itself: it fills the terminal, so your component
 inherits the font and the colours, and the prompt is not rendered, so it cannot
 take the keys or the focus your component is waiting for. Everything inside is
-yours. Kanza does not care whether it is a text interface, a form or a game.
+yours. Replikateur does not care whether it is a text interface, a form or a game.
 
-While a screen is open, Kanza listens for nothing, not even Ctrl+C. If what you
+While a screen is open, Replikateur listens for nothing, not even Ctrl+C. If what you
 render has no way out, you are stuck, the same as in a real terminal.
 
-Call `preventDefault` on the keys your screen handles. Kanza cannot know which
+Call `preventDefault` on the keys your screen handles. Replikateur cannot know which
 ones you used, so without it the browser still acts on them: the arrows scroll the
 page, and the key that closes the screen is typed into the prompt that comes back
 underneath it.
@@ -419,7 +415,7 @@ Two more details:
 
 ### Styling
 
-Import `kanza/style.css` and you are done. The look is settable through props
+Import `replikateur/style.css` and you are done. The look is settable through props
 only: [Cursor](#cursor), [Theme](#theme) and [Size](#size). The stylesheet
 itself is internal, so no class names are part of the API and nothing in it is
 yours to override.
@@ -436,18 +432,18 @@ prompt, and `clear` removes it along with everything else.
 ```jsx
 <Terminal
   commands={commands}
-  prompt="bouwe@kanza $"
-  welcome={'Welcome to Kanza.\nType "help" to see what it can do.'}
+  prompt="bouwe@replikateur $"
+  welcome={'Welcome to Replikateur.\nType "help" to see what it can do.'}
 />
 ```
 
 ```
-Welcome to Kanza.
+Welcome to Replikateur.
 Type "help" to see what it can do.
 
-bouwe@kanza $ hello
+bouwe@replikateur $ hello
 Hello to you too :)
-bouwe@kanza $
+bouwe@replikateur $
 ```
 
 ### Cursor
@@ -538,7 +534,7 @@ When both flags declared the same letter, the message names it:
 
 ```
 > add
-kanza: --name and --number both use -n. A short form belongs to one flag.
+replikateur: --name and --number both use -n. A short form belongs to one flag.
 ```
 
 When they only collide because they start with the same letter, neither gets a
@@ -546,7 +542,7 @@ short form:
 
 ```
 > add
-kanza: --name and --number both want -n. Neither gets a short form. Set `short` on one.
+replikateur: --name and --number both want -n. Neither gets a short form. Set `short` on one.
 ```
 
 ## Development
@@ -577,9 +573,9 @@ This type checks the project and builds the library into `dist`:
 
 | File         | What it is                       |
 | ------------ | -------------------------------- |
-| `kanza.js`   | The library, ES module           |
-| `kanza.css`  | The styles, must be imported too |
-| `kanza.d.ts` | The TypeScript types             |
+| `replikateur.js`   | The library, ES module           |
+| `replikateur.css`  | The styles, must be imported too |
+| `replikateur.d.ts` | The TypeScript types             |
 
 React is not bundled. It is a peer dependency, so the app that uses the library
 brings its own copy.
@@ -590,7 +586,7 @@ brings its own copy.
 npm run build:embed
 ```
 
-This builds `dist/kanza.embed.js`, the single file from [Without a build
+This builds `dist/replikateur.embed.js`, the single file from [Without a build
 step](#without-a-build-step). It has its own Vite config,
 `vite.embed.config.ts`, because the rules are the opposite of the library ones:
 React is bundled, the styles are injected into the page by the script itself,
@@ -614,7 +610,7 @@ http://localhost:5173. There are two pages, and they link to each other:
 | Page          | What it is                                                  |
 | ------------- | ----------------------------------------------------------- |
 | `/`           | A React app, with a panel to change every prop live          |
-| `/embed.html` | A plain page with one `<script>` tag and `window.Kanza.init` |
+| `/embed.html` | A plain page with one `<script>` tag and `window.Replikateur.init` |
 
 Try `help`, `clear`, and the commands in `demo/commands.jsx`. The two pages do
 not share their commands: the React ones return JSX, which needs the app's own
@@ -642,5 +638,5 @@ This installs, bumps the version, builds, publishes to npm and pushes the tag.
 
 The embed script is built too. `npm publish` runs the `prepublishOnly` script
 first, which is `npm run build:embed`, and `dist` is what the package ships. So
-every published version has `dist/kanza.embed.js` in it, and every published
+every published version has `dist/replikateur.embed.js` in it, and every published
 version has a CDN link.

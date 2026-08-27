@@ -827,9 +827,9 @@ describe('Prompt and welcome message', () => {
   })
 
   test('uses a custom prompt on the line you type', () => {
-    render(<Terminal commands={commands} prompt="bouwe@kanza $" />)
+    render(<Terminal commands={commands} prompt="bouwe@replikateur $" />)
 
-    expect(screen.getByText('bouwe@kanza $')).toBeInTheDocument()
+    expect(screen.getByText('bouwe@replikateur $')).toBeInTheDocument()
     expect(screen.queryByText('>')).not.toBeInTheDocument()
   })
 
@@ -1401,7 +1401,7 @@ describe('Screens', () => {
 })
 
 const cssVar = (name: string) =>
-  screen.getByRole('presentation').style.getPropertyValue(`--kanza-${name}`)
+  screen.getByRole('presentation').style.getPropertyValue(`--replikateur-${name}`)
 
 describe('Cursor shape and blink', () => {
   const commands: Commands = { hello: { handle: () => 'Hello World!' } }

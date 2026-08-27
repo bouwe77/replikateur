@@ -10,6 +10,6 @@ export default defineConfig({
   server: { fs: { allow: ['..'] } },
 
   // Serves ../dist as static files, so embed.html can load the embed bundle
-  // from /kanza.embed.js the same way a <script> tag on a real page does.
+  // from /replikateur.embed.js the same way a <script> tag on a real page does.
   publicDir: '../dist',
 })

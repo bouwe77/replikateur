@@ -1,6 +1,6 @@
 # TODO / ideëen
 
-- [x] Library name: "kanza", publish op NPM, TypeScript, CSS
+- [x] Library name: "replikateur", publish op NPM, TypeScript, CSS
 - [x] Clear commando moet echt alles clearen incl. clear commando zelf...
 - [x] Geen regex meer
 - [x] args als string array in handle function
@@ -67,7 +67,7 @@
       keys af van wat je rendert. De history zelf blijft gewoon staan in
       `Terminal`, dus sluiten geeft hem onaangeroerd terug, en `useFocus` van een
       opnieuw gemounte `CommandInput` zet de focus vanzelf terug op de prompt.
-      Eén screen tegelijk, en Kanza luistert nergens op zolang er een openstaat,
+      Eén screen tegelijk, en Replikateur luistert nergens op zolang er een openstaat,
       ook niet op Ctrl+C: dat zou een key afpakken van wat er in het screen leeft.
 - [ ] Screens: vier dingen bewust open gelaten. Geen blockers, oppakken als er een
       reden voor is.
@@ -129,7 +129,7 @@
       bestonden omdat `classes.scrollAnchor` iets nodig had om aan te hangen.
       Alles is nu `styles.x` direct. Wat je zelf rendert (een response, een
       screen) is nog gewoon van jou: dat is een `ReactNode`.
-- [x] Alles overhevelen naar kanza en react-terminal repo verwijderen.
+- [x] Alles overhevelen naar replikateur en react-terminal repo verwijderen.
 - [x] Constructie om snel een dev build appje op te tuigen, net als met Temba
 
 ---

@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [
     react(),
     dts({
-      include: ['src/kanza', 'src/vite-env.d.ts'],
+      include: ['src/replikateur', 'src/vite-env.d.ts'],
       exclude: ['**/*.test.tsx'],
       rollupTypes: true,
     }),
@@ -16,9 +16,9 @@ export default defineConfig({
 
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/kanza/index.ts'),
-      name: 'Kanza',
-      fileName: 'kanza',
+      entry: resolve(__dirname, 'src/replikateur/index.ts'),
+      name: 'Replikateur',
+      fileName: 'replikateur',
       formats: ['es'],
     },
     rollupOptions: {

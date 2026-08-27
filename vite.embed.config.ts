@@ -33,8 +33,8 @@ export default defineConfig({
     cssCodeSplit: false,
     lib: {
       entry: resolve(__dirname, 'src/embed.tsx'),
-      name: 'Kanza',
-      fileName: () => 'kanza.embed.js',
+      name: 'Replikateur',
+      fileName: () => 'replikateur.embed.js',
       formats: ['iife'],
     },
   },

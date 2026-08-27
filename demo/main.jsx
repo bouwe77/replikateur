@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import ReactDOM from 'react-dom/client'
-import { Terminal } from '../dist/kanza.js'
-import '../dist/kanza.css'
+import { Terminal } from '../dist/replikateur.js'
+import '../dist/replikateur.css'
 import commands from './commands.jsx'
 
 // Every Terminal prop that is not a command, flat, so one input maps to one
@@ -9,7 +9,7 @@ import commands from './commands.jsx'
 const DEFAULTS = {
   prompt: '$',
   welcome:
-    'Welcome to kanza! Type "help" to see what you can do here.\nChange anything on the right and watch it apply right away.',
+    'Welcome to replikateur! Type "help" to see what you can do here.\nChange anything on the right and watch it apply right away.',
   shape: 'block',
   blink: true,
   background: '#1a0033',
@@ -155,7 +155,7 @@ const App = () => {
       </div>
 
       <aside className="panel">
-        <h1>kanza settings</h1>
+        <h1>replikateur settings</h1>
         <p>Everything here is a prop. Change it and the terminal follows.</p>
 
         <p>

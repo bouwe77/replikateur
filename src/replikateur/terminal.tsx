@@ -241,7 +241,7 @@ const buildShortForms = (definitions: CommandFlagDefinitions) => {
   const conflict = (message: string) => ({
     longToShort: {} as Record<string, string>,
     shortToLong: {} as Record<string, string>,
-    conflict: `kanza: ${message}`,
+    conflict: `replikateur: ${message}`,
   })
 
   for (const [long, definition] of Object.entries(definitions)) {
@@ -628,17 +628,17 @@ export const Terminal = ({
   // fallback in the CSS. The cast is needed because CSSProperties has no index
   // signature for custom properties.
   const cssVars = {
-    '--kanza-caret-shape': shape,
-    '--kanza-caret-animation': blink ? 'auto' : 'manual',
-    '--kanza-width': size.width,
-    '--kanza-height': size.height,
-    '--kanza-background': theme.background,
-    '--kanza-foreground': theme.foreground,
-    '--kanza-prompt-color': theme.promptColor,
-    '--kanza-response-color': theme.responseColor,
-    '--kanza-font-family': theme.fontFamily,
-    '--kanza-font-size': theme.fontSize,
-    '--kanza-padding': theme.padding,
+    '--replikateur-caret-shape': shape,
+    '--replikateur-caret-animation': blink ? 'auto' : 'manual',
+    '--replikateur-width': size.width,
+    '--replikateur-height': size.height,
+    '--replikateur-background': theme.background,
+    '--replikateur-foreground': theme.foreground,
+    '--replikateur-prompt-color': theme.promptColor,
+    '--replikateur-response-color': theme.responseColor,
+    '--replikateur-font-family': theme.fontFamily,
+    '--replikateur-font-size': theme.fontSize,
+    '--replikateur-padding': theme.padding,
   } as CSSProperties
 
   const { history, pushToHistory, replaceResponse } = useTerminalHistory(prompt)
@@ -668,7 +668,7 @@ export const Terminal = ({
 
   useEffect(() => {
     for (const problem of commandProblems(commands)) {
-      console.error(`kanza: ${problem}`)
+      console.error(`replikateur: ${problem}`)
     }
   }, [commands])
 

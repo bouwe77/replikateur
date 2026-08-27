@@ -60,9 +60,9 @@ of real, editable files instead of heredocs.
 - [x] **`tab-completion.md`.** 113 lines of design for a feature whose own
       "Recommended scope" section is about 30 lines of code, while `TODO.md`
       L35-39 already summarises it. Keep the scope list, drop the file.
-- [x] **`readme.md` and `src/kanza/README.md`.** Two hand-written READMEs, 494
+- [x] **`readme.md` and `src/replikateur/README.md`.** Two hand-written READMEs, 494
       lines together, documenting the same API. The root one is what npm and
-      GitHub show, so the API docs moved there and `src/kanza/README.md` is
+      GitHub show, so the API docs moved there and `src/replikateur/README.md` is
       deleted. A stub pointing at the other file is the kind of thing this pass
       removes.
 - [ ] **`terminal.tsx` L263-275, the list grammar. Not done, on purpose.** Tried
@@ -93,7 +93,7 @@ Done:
       once per component, so each site reads `cx('prompt')`. 777 to 757 lines.
 - [x] **5. `export` on the internal components.** `HistoryList`, `Help` and
       `CommandInput` are no longer exported, and `index.ts` no longer claims
-      they are exported for the tests. Checked first: `dist/kanza.d.ts` never
+      they are exported for the tests. Checked first: `dist/replikateur.d.ts` never
       contained them, and the test file imports only `Terminal`, `Commands` and
       `CommandHandlerArgs`.
 - [x] **6 + 7. Three dead CSS rules.** `.scrollAnchor` kept its class but lost
@@ -101,7 +101,7 @@ Done:
       header comment naming a file that does not exist is gone, and so is
       `.cursor:focus { outline: none }`, which repeats what `.cursor` already
       sets in every state. The empty `.scrollAnchor` rule is dropped from
-      `dist/kanza.css` by the build, but the class name mapping survives in the
+      `dist/replikateur.css` by the build, but the class name mapping survives in the
       JS, so the public `classes.scrollAnchor` key still works.
 
 Kept on purpose:
@@ -135,7 +135,7 @@ Kept on purpose:
       `@vitejs/plugin-react`). The plan's one-line fix does not work for the same
       reason. What did work, verified and then reverted: the `bundler`
       resolution setting, a single `include: ["src", "vite.config.ts"]`, and
-      `entry: 'src/kanza/index.ts'` instead of `resolve(__dirname, …)`. That is
+      `entry: 'src/replikateur/index.ts'` instead of `resolve(__dirname, …)`. That is
       -11 lines with `tsc` silent, the build fine, the tests passing and `dist`
       identical. Reopen from here if the config ever needs to be trusted.
       Loose end: `tsconfig.node.tsbuildinfo` is untracked in the repo root and

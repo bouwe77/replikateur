@@ -1,17 +1,17 @@
 {
-  "name": "kanza",
+  "name": "replikateur",
   "private": false,
   "version": "0.0.5",
   "type": "module",
-  "main": "./dist/kanza.js",
-  "module": "./dist/kanza.js",
-  "types": "./dist/kanza.d.ts",
+  "main": "./dist/replikateur.js",
+  "module": "./dist/replikateur.js",
+  "types": "./dist/replikateur.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/kanza.d.ts",
-      "import": "./dist/kanza.js"
+      "types": "./dist/replikateur.d.ts",
+      "import": "./dist/replikateur.js"
     },
-    "./style.css": "./dist/kanza.css"
+    "./style.css": "./dist/replikateur.css"
   },
   "files": [
     "dist"
@@ -58,6 +58,6 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bouwe77/kanza.git"
+    "url": "https://github.com/bouwe77/replikateur.git"
   }
 }

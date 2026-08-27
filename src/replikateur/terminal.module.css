@@ -1,24 +1,24 @@
 .terminal {
-  background-color: var(--kanza-background, black);
+  background-color: var(--replikateur-background, black);
   /* A height, not a min-height, so the box itself scrolls in both cases: the
      whole viewport by default, or whatever size you gave it. */
-  height: var(--kanza-height, 100vh);
-  width: var(--kanza-width, 100%);
-  padding: var(--kanza-padding, 20px);
+  height: var(--replikateur-height, 100vh);
+  width: var(--replikateur-width, 100%);
+  padding: var(--replikateur-padding, 20px);
   box-sizing: border-box;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   font-family: var(
-    --kanza-font-family,
+    --replikateur-font-family,
     'Menlo',
     'Monaco',
     'Courier New',
     monospace
   );
-  font-size: var(--kanza-font-size, 14px);
+  font-size: var(--replikateur-font-size, 14px);
   line-height: 1.5;
-  color: var(--kanza-foreground, white);
+  color: var(--replikateur-foreground, white);
 }
 
 .historyItem {
@@ -34,18 +34,18 @@
 
 .historyPrompt {
   margin-right: 8px;
-  color: var(--kanza-prompt-color, #00ff00);
+  color: var(--replikateur-prompt-color, #00ff00);
   white-space: pre;
 }
 
 .historyInput {
-  color: var(--kanza-foreground, white);
+  color: var(--replikateur-foreground, white);
   word-break: break-all;
 }
 
 .historyResponse {
   margin-top: 2px;
-  color: var(--kanza-response-color, #cccccc);
+  color: var(--replikateur-response-color, #cccccc);
   white-space: pre-wrap;
 }
 
@@ -56,7 +56,7 @@
 }
 
 .prompt {
-  color: var(--kanza-prompt-color, #00ff00);
+  color: var(--replikateur-prompt-color, #00ff00);
   margin-right: 8px;
   white-space: pre;
 }
@@ -64,7 +64,7 @@
 .cursor {
   border: 0;
   background-color: transparent;
-  color: var(--kanza-foreground, white);
+  color: var(--replikateur-foreground, white);
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
@@ -72,22 +72,22 @@
   flex-grow: 1;
   margin: 0;
   padding: 0;
-  caret-color: var(--kanza-foreground, white);
+  caret-color: var(--replikateur-foreground, white);
   outline: none;
   /* Chromium only for now: Firefox and Safari ignore these and keep their own
      thin blinking caret. */
-  caret-shape: var(--kanza-caret-shape, bar);
-  caret-animation: var(--kanza-caret-animation, auto);
+  caret-shape: var(--replikateur-caret-shape, bar);
+  caret-animation: var(--replikateur-caret-animation, auto);
 }
 
 /* No margin of its own: help is a response like any other, so the spacing
    around it comes from .historyResponse and .historyItem. */
 .helpContainer {
-  color: var(--kanza-foreground, white);
+  color: var(--replikateur-foreground, white);
 }
 
 .helpExample {
-  color: var(--kanza-prompt-color, #00ff00);
+  color: var(--replikateur-prompt-color, #00ff00);
 }
 
 .helpFlag {
