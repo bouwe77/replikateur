@@ -7,7 +7,7 @@ import commands from './commands.jsx'
 // Every Terminal prop that is not a command, flat, so one input maps to one
 // value. It is turned back into the nested props shape in <App />.
 const DEFAULTS = {
-  prompt: 'λ',
+  prompt: '$',
   welcome:
     'Welcome to kanza! Type "help" to see what you can do here.\nChange anything on the right and watch it apply right away.',
   shape: 'block',
@@ -16,7 +16,7 @@ const DEFAULTS = {
   foreground: '#f6e9ff',
   promptColor: '#ff2fb9',
   responseColor: '#5ef1ff',
-  fontFamily: "'Courier New', monospace",
+  fontFamily: "'Menlo', 'Monaco', monospace",
   fontSize: 18,
   padding: 24,
   width: '100%',
