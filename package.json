@@ -21,7 +21,9 @@
     "build": "tsc && vite build",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage",
+    "build:embed": "vite build --config vite.embed.config.ts",
+    "prepublishOnly": "npm run build:embed"
   },
   "peerDependencies": {
     "react": ">=18",

@@ -43,6 +43,59 @@ export default function App() {
 `help <command>` shows one command. Define your own command with either name to
 take it over.
 
+### Without a build step
+
+There is a second build: one JavaScript file with React, the component and the
+styles inside it. You drop it in a `<script>` tag and call `window.Kanza.init`.
+Nothing to install, no bundler.
+
+Every npm package is served by public CDNs, so the file is a URL as soon as a
+version is published:
+
+```
+https://cdn.jsdelivr.net/npm/kanza/dist/kanza.embed.js
+https://unpkg.com/kanza/dist/kanza.embed.js
+```
+
+Those URLs give you the newest version. Pin one in production, so a new release
+cannot change your page without you: put `@` and a version number after the
+name, like `kanza@1.2.3/dist/kanza.embed.js`. The version numbers are on
+[npmjs.com/package/kanza](https://www.npmjs.com/package/kanza).
+
+```html
+<div id="terminal"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/kanza/dist/kanza.embed.js"></script>
+<script>
+  const terminal = window.Kanza.init({
+    target: '#terminal',
+    commands: {
+      hello: {
+        handle: () => 'Hello to you too :)',
+        help: { example: 'hello', description: 'Say hello' },
+      },
+    },
+  })
+</script>
+```
+
+`target` is a selector or a DOM node. Everything else is the props of
+`<Terminal>`, the same ones the rest of this readme describes.
+
+`init` returns a handle:
+
+| Method             | What it does                                     |
+| ------------------ | ------------------------------------------------ |
+| `update(newProps)` | Renders again with new props, keeps the terminal |
+| `unmount()`        | Removes the terminal from the page               |
+
+Calling `init` twice on the same element does not build a second terminal. It
+reuses the first one and renders it with the new props, the same as `update`.
+
+People who prefer to host the file themselves can download it from the CDN
+link, or take `node_modules/kanza/dist/kanza.embed.js` after `npm install
+kanza`.
+
 ## Writing commands
 
 Everything here is code you write. What the terminal does on its own is in
@@ -531,6 +584,21 @@ This type checks the project and builds the library into `dist`:
 React is not bundled. It is a peer dependency, so the app that uses the library
 brings its own copy.
 
+### Build the embed script
+
+```bash
+npm run build:embed
+```
+
+This builds `dist/kanza.embed.js`, the single file from [Without a build
+step](#without-a-build-step). It has its own Vite config,
+`vite.embed.config.ts`, because the rules are the opposite of the library ones:
+React is bundled, the styles are injected into the page by the script itself,
+and the output is one file that runs in a browser as it is.
+
+It writes into the same `dist`, so run it after `npm run build`, not before:
+`npm run build` empties `dist` first.
+
 ### The demo app
 
 The demo app lives in `demo` and runs against `dist`, so what you try out is
@@ -540,8 +608,20 @@ what people actually get when they install the library.
 ./dev.sh   # or npm run dev, the same thing
 ```
 
-That builds the library and starts the app on http://localhost:5173. Try `help`,
-`clear`, and the commands in `demo/commands.jsx`.
+That builds the library and the embed script, and starts the app on
+http://localhost:5173. There are two pages, and they link to each other:
+
+| Page          | What it is                                                  |
+| ------------- | ----------------------------------------------------------- |
+| `/`           | A React app, with a panel to change every prop live          |
+| `/embed.html` | A plain page with one `<script>` tag and `window.Kanza.init` |
+
+Try `help`, `clear`, and the commands in `demo/commands.jsx`. The two pages do
+not share their commands: the React ones return JSX, which needs the app's own
+React, while the embed page has no React of its own. Its commands are plain
+strings, the same as a real embedder writes.
+
+Check the page that matches what you changed. Both, if you touched the build.
 
 The app has no dependencies of its own. Vite, React and the React plugin are
 resolved from the `node_modules` of this repo, so there is nothing to install and
@@ -559,3 +639,8 @@ than the rebuild does.
 ```
 
 This installs, bumps the version, builds, publishes to npm and pushes the tag.
+
+The embed script is built too. `npm publish` runs the `prepublishOnly` script
+first, which is `npm run build:embed`, and `dist` is what the package ships. So
+every published version has `dist/kanza.embed.js` in it, and every published
+version has a CDN link.
