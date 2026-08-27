@@ -106,6 +106,29 @@
         `caret-color`, dus dat zou alleen een kortere weg zijn.
       - Een holle blok-cursor als de terminal geen focus heeft, zoals echte
         terminals doen. Vraagt ook een eigen element.
+- [x] Uiterlijk instelbaar via props, niet via CSS: `theme` (background,
+      foreground, promptColor, responseColor, fontFamily, fontSize, padding) en
+      `size` (width, height). Alles wordt een custom property op de terminal-box,
+      net als bij `cursor`, en de defaults staan als `var()` fallback in
+      `terminal.module.css`. Een key die je weglaat komt niet in de style, dus de
+      fallback beslist en er is geen tweede plek met defaults.
+      Twee dingen bewust zo:
+      - `.terminal` heeft nu `height` in plaats van `min-height: 100vh`, en
+        `width: 100%` in plaats van `100vw`. Daardoor scrollt de box zelf in
+        beide gevallen, en is `size` genoeg om de terminal in een kadertje op
+        een pagina te zetten. `100vw` gaf ook een scrollbar-overflow.
+      - Geen `size="fullscreen"` string erbij: dat is precies de default, dus dat
+        zou een tweede manier zijn om niets te zeggen. Een union kan er later
+        bij zonder breaking change.
+- [x] `classes` eruit, voor consistentie: props zijn de enige manier om de
+      terminal aan te passen, dus de CSS is intern. Met `classes` was elke
+      classname en elke regel in `terminal.module.css` publieke API, en dan kun
+      je daar niets meer in verzetten zonder iemand te breken. Weg zijn:
+      `TerminalClasses`, de `classNames` helper, de `classes` prop op elk
+      component, en de lege `.scrollAnchor` regel plus zijn classname, die alleen
+      bestonden omdat `classes.scrollAnchor` iets nodig had om aan te hangen.
+      Alles is nu `styles.x` direct. Wat je zelf rendert (een response, een
+      screen) is nog gewoon van jou: dat is een `ReactNode`.
 - [x] Alles overhevelen naar kanza en react-terminal repo verwijderen.
 - [x] Constructie om snel een dev build appje op te tuigen, net als met Temba
 

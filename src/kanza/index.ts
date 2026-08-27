@@ -3,9 +3,10 @@ export { Terminal } from './terminal'
 
 export type {
   TerminalProps,
-  TerminalClasses,
   TerminalScreen,
   TerminalCursor,
+  TerminalTheme,
+  TerminalSize,
   CursorShape,
   Commands,
   CommandDefinition,

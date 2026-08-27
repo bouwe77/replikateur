@@ -81,8 +81,51 @@ Chromium browsers support today. In Firefox and Safari you get their normal thin
 blinking caret instead, and `cursor` does nothing until those browsers ship the
 properties. Nothing breaks either way.
 
-There is no `color` in there, because `classes.cursor` already covers it: your
-own class with a `caret-color` is all it takes. See [Styling](#styling).
+There is no `color` in there, because the theme covers it: the cursor takes the
+`foreground` colour.
+
+## Theme
+
+The colours, the font and the padding are one optional `theme` prop. Every key
+is optional, and every value is a CSS value passed straight through, so any
+unit or colour notation works. Leave a key out and you get the default.
+
+```jsx
+<Terminal
+  commands={commands}
+  theme={{
+    background: '#001b1b',
+    foreground: '#e8e8e8',
+    promptColor: 'cyan',
+    responseColor: 'rgb(180 180 180)',
+    fontFamily: '"Fira Code", monospace',
+    fontSize: '1.1rem',
+    padding: '2em',
+  }}
+/>
+```
+
+| Key             | What it colours or sets                        | Default                                       |
+| --------------- | ---------------------------------------------- | --------------------------------------------- |
+| `background`    | The whole terminal                             | `black`                                       |
+| `foreground`    | What you type, in the history too, and help    | `white`                                       |
+| `promptColor`   | The prompt, and the example commands in `help` | `#00ff00`                                     |
+| `responseColor` | What a command answered                        | `#cccccc`                                     |
+| `fontFamily`    | Everything, the input included                 | `'Menlo', 'Monaco', 'Courier New', monospace` |
+| `fontSize`      | Everything, the input included                 | `14px`                                        |
+| `padding`       | The space around the whole terminal            | `20px`                                        |
+
+## Size
+
+By default the terminal fills the viewport: the full width of its parent and
+`100vh` tall. Pass `size` to put it in a box on a page instead. Both keys are
+optional and take any CSS length.
+
+```jsx
+<Terminal commands={commands} size={{ width: '600px', height: '400px' }} />
+```
+
+The box scrolls, not the page, so a long history stays inside it either way.
 
 ## Commands
 
@@ -398,24 +441,13 @@ Declaring flags does not type them. `flags.name` is still `string | boolean`.
 
 ## Styling
 
-Import `kanza/style.css` for the default look, then pass your own class names to
-override any part of it:
+Import `kanza/style.css` and you are done. The look is settable through props
+only: [Cursor](#cursor), [Theme](#theme) and [Size](#size). The stylesheet
+itself is internal, so no class names are part of the API and nothing in it is
+yours to override.
 
-```jsx
-<Terminal commands={commands} classes={{ prompt: 'my-prompt' }} />
-```
-
-| Key                                                | What it is                       |
-| -------------------------------------------------- | -------------------------------- |
-| `terminal`                                         | The whole thing                  |
-| `historyItem`, `historyRow`                        | One line of history, and its row |
-| `historyPrompt`, `historyInput`, `historyResponse` | The `>`, the echo, the response  |
-| `inputForm`, `prompt`, `cursor`                    | The line you type on             |
-| `helpContainer`, `helpExample`, `helpFlag`         | The `help` output                |
-| `pending`                                          | The marker of a running command  |
-| `welcome`                                          | The welcome message              |
-| `scrollAnchor`                                     | The element it scrolls to        |
-| `screen`                                           | The box an open screen fills     |
+What you render is still yours. A command's response and a screen are
+`ReactNode`, so anything you put in there you style yourself, the normal way.
 
 ## Development
 

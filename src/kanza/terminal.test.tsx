@@ -1315,16 +1315,13 @@ describe('Screens', () => {
   })
 })
 
+const cssVar = (name: string) =>
+  screen.getByRole('presentation').style.getPropertyValue(`--kanza-${name}`)
+
 describe('Cursor shape and blink', () => {
   const commands: Commands = { hello: { handle: () => 'Hello World!' } }
 
-  const caretVars = () => {
-    const style = screen.getByRole('presentation').style
-    return [
-      style.getPropertyValue('--kanza-caret-shape'),
-      style.getPropertyValue('--kanza-caret-animation'),
-    ]
-  }
+  const caretVars = () => [cssVar('caret-shape'), cssVar('caret-animation')]
 
   test('defaults to a blinking bar', () => {
     render(<Terminal commands={commands} />)
@@ -1338,8 +1335,68 @@ describe('Cursor shape and blink', () => {
 
   test('a block cursor that does not blink', () => {
     render(
-      <Terminal commands={commands} cursor={{ shape: 'block', blink: false }} />,
+      <Terminal
+        commands={commands}
+        cursor={{ shape: 'block', blink: false }}
+      />,
     )
     expect(caretVars()).toEqual(['block', 'manual'])
+  })
+})
+
+describe('Theme and size', () => {
+  const commands: Commands = { hello: { handle: () => 'Hello World!' } }
+
+  test('sets nothing of its own, so the CSS defaults decide', () => {
+    render(<Terminal commands={commands} />)
+
+    expect(cssVar('background')).toBe('')
+    expect(cssVar('font-size')).toBe('')
+    expect(cssVar('width')).toBe('')
+    expect(cssVar('height')).toBe('')
+  })
+
+  test('passes theme values through as they are', () => {
+    render(
+      <Terminal
+        commands={commands}
+        theme={{
+          background: '#001b1b',
+          foreground: 'papayawhip',
+          promptColor: 'cyan',
+          responseColor: 'rgb(180 180 180)',
+          fontFamily: 'Fira Code, monospace',
+          fontSize: '1.1rem',
+          padding: '2em',
+        }}
+      />,
+    )
+
+    expect(cssVar('background')).toBe('#001b1b')
+    expect(cssVar('foreground')).toBe('papayawhip')
+    expect(cssVar('prompt-color')).toBe('cyan')
+    expect(cssVar('response-color')).toBe('rgb(180 180 180)')
+    expect(cssVar('font-family')).toBe('Fira Code, monospace')
+    expect(cssVar('font-size')).toBe('1.1rem')
+    expect(cssVar('padding')).toBe('2em')
+  })
+
+  test('a terminal in a box instead of the whole page', () => {
+    render(
+      <Terminal
+        commands={commands}
+        size={{ width: '600px', height: '400px' }}
+      />,
+    )
+
+    expect(cssVar('width')).toBe('600px')
+    expect(cssVar('height')).toBe('400px')
+  })
+
+  test('one side of the size on its own leaves the other to the CSS', () => {
+    render(<Terminal commands={commands} size={{ height: '50vh' }} />)
+
+    expect(cssVar('height')).toBe('50vh')
+    expect(cssVar('width')).toBe('')
   })
 })

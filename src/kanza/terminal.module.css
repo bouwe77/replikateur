@@ -1,16 +1,24 @@
 .terminal {
-  background-color: black;
-  min-height: 100vh;
-  width: 100vw;
-  padding: 20px;
+  background-color: var(--kanza-background, black);
+  /* A height, not a min-height, so the box itself scrolls in both cases: the
+     whole viewport by default, or whatever size you gave it. */
+  height: var(--kanza-height, 100vh);
+  width: var(--kanza-width, 100%);
+  padding: var(--kanza-padding, 20px);
   box-sizing: border-box;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
-  font-size: 14px;
+  font-family: var(
+    --kanza-font-family,
+    'Menlo',
+    'Monaco',
+    'Courier New',
+    monospace
+  );
+  font-size: var(--kanza-font-size, 14px);
   line-height: 1.5;
-  color: white;
+  color: var(--kanza-foreground, white);
 }
 
 .historyItem {
@@ -26,18 +34,18 @@
 
 .historyPrompt {
   margin-right: 8px;
-  color: #00ff00;
+  color: var(--kanza-prompt-color, #00ff00);
   white-space: pre;
 }
 
 .historyInput {
-  color: white;
+  color: var(--kanza-foreground, white);
   word-break: break-all;
 }
 
 .historyResponse {
   margin-top: 2px;
-  color: #cccccc;
+  color: var(--kanza-response-color, #cccccc);
   white-space: pre-wrap;
 }
 
@@ -48,7 +56,7 @@
 }
 
 .prompt {
-  color: #00ff00;
+  color: var(--kanza-prompt-color, #00ff00);
   margin-right: 8px;
   white-space: pre;
 }
@@ -56,7 +64,7 @@
 .cursor {
   border: 0;
   background-color: transparent;
-  color: white;
+  color: var(--kanza-foreground, white);
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
@@ -64,7 +72,7 @@
   flex-grow: 1;
   margin: 0;
   padding: 0;
-  caret-color: white;
+  caret-color: var(--kanza-foreground, white);
   outline: none;
   /* Chromium only for now: Firefox and Safari ignore these and keep their own
      thin blinking caret. */
@@ -75,16 +83,11 @@
 /* No margin of its own: help is a response like any other, so the spacing
    around it comes from .historyResponse and .historyItem. */
 .helpContainer {
-  color: white;
+  color: var(--kanza-foreground, white);
 }
 
 .helpExample {
-  color: #00ff00;
-}
-
-/* The element the terminal scrolls to. No look of its own, but the class must
-   exist so classes.scrollAnchor has something to extend. */
-.scrollAnchor {
+  color: var(--kanza-prompt-color, #00ff00);
 }
 
 .helpFlag {

@@ -11,31 +11,6 @@ import {
 } from 'react'
 import styles from './terminal.module.css'
 
-export type TerminalClasses = {
-  terminal?: string
-  historyItem?: string
-  historyRow?: string
-  historyPrompt?: string
-  historyInput?: string
-  historyResponse?: string
-  inputForm?: string
-  prompt?: string
-  cursor?: string
-  helpContainer?: string
-  helpExample?: string
-  helpFlag?: string
-  pending?: string
-  welcome?: string
-  scrollAnchor?: string
-  screen?: string
-}
-
-// Every class name is the built in one plus yours, if you passed one for that
-// part. Bound to `classes` once per component, so a site reads as cx('prompt').
-const classNames =
-  (classes?: TerminalClasses) => (key: keyof TerminalClasses) =>
-    `${styles[key]} ${classes?.[key] ?? ''}`
-
 export type CommandFlags = Record<string, string | boolean>
 
 export type CommandFlagDefinition = {
@@ -158,6 +133,26 @@ export type TerminalCursor = {
 }
 
 const DEFAULT_CURSOR_SHAPE: CursorShape = 'bar'
+
+// Every value is a CSS value, passed through as it is, so any unit works and
+// there is nothing to guess. Leave one out and the default in
+// terminal.module.css decides.
+export type TerminalTheme = {
+  background?: string
+  foreground?: string
+  promptColor?: string
+  responseColor?: string
+  fontFamily?: string
+  fontSize?: string
+  padding?: string
+}
+
+// Full viewport by default. Give both to put the terminal in a box on a page,
+// for example { width: '600px', height: '400px' }.
+export type TerminalSize = {
+  width?: string
+  height?: string
+}
 
 const FLAG_TOKEN = /^(--?)([a-zA-Z].*)$/
 
@@ -386,11 +381,9 @@ const resolveFlags = (
 
 // Shown in place of the response while an async command is still running. The
 // dots are animated in CSS, so nothing here needs a timer.
-const Pending = ({ classes }: { classes?: TerminalClasses }) => {
-  const cx = classNames(classes)
-
+const Pending = () => {
   return (
-    <span className={cx('pending')}>
+    <span className={styles.pending}>
       <span>.</span>
       <span>.</span>
       <span>.</span>
@@ -419,22 +412,19 @@ const errorMessage = (error: unknown) =>
 
 interface HistoryListProps {
   history: History
-  classes?: TerminalClasses
 }
 
-const HistoryList = ({ history, classes }: HistoryListProps) => {
-  const cx = classNames(classes)
-
+const HistoryList = ({ history }: HistoryListProps) => {
   return (
     <div role="log">
       {history.map((h) => (
-        <div key={h.id} className={cx('historyItem')}>
-          <div className={cx('historyRow')}>
-            <span className={cx('historyPrompt')}>{h.prompt}</span>
-            <span className={cx('historyInput')}>{h.rawInput}</span>
+        <div key={h.id} className={styles.historyItem}>
+          <div className={styles.historyRow}>
+            <span className={styles.historyPrompt}>{h.prompt}</span>
+            <span className={styles.historyInput}>{h.rawInput}</span>
           </div>
           {h.response && (
-            <div className={cx('historyResponse')}>{h.response}</div>
+            <div className={styles.historyResponse}>{h.response}</div>
           )}
         </div>
       ))}
@@ -445,22 +435,15 @@ const HistoryList = ({ history, classes }: HistoryListProps) => {
 interface HelpProps {
   commands: Record<string, CommandDefinition>
   heading?: string
-  classes?: TerminalClasses
 }
 
 // Lists a flag as "--name, -n", or as "--name" when it has no short form.
 const flagNames = (long: string, short?: string) =>
   short ? `--${long}, -${short}` : `--${long}`
 
-const Help = ({
-  commands,
-  heading = 'Available commands:',
-  classes,
-}: HelpProps) => {
-  const cx = classNames(classes)
-
+const Help = ({ commands, heading = 'Available commands:' }: HelpProps) => {
   return (
-    <div className={cx('helpContainer')}>
+    <div className={styles.helpContainer}>
       {heading}
       {Object.entries(commands)
         .filter(([_, cmd]) => cmd.help)
@@ -470,13 +453,13 @@ const Help = ({
           return (
             <Fragment key={name}>
               {(heading || index > 0) && <br />}
-              <span className={cx('helpExample')}>
+              <span className={styles.helpExample}>
                 {cmd.help?.example}
               </span> - {cmd.help?.description}
               {Object.entries(cmd.flags ?? {}).map(([long, definition]) => (
                 <Fragment key={long}>
                   <br />
-                  <span className={cx('helpFlag')}>
+                  <span className={styles.helpFlag}>
                     {flagNames(long, longToShort[long])}
                   </span>{' '}
                   {definition.description}
@@ -494,7 +477,6 @@ interface CommandInputProps {
   onCancel: (typed: string) => boolean
   history: History
   prompt: string
-  classes?: TerminalClasses
 }
 
 const CommandInput = ({
@@ -502,9 +484,7 @@ const CommandInput = ({
   onCancel,
   history,
   prompt,
-  classes,
 }: CommandInputProps) => {
-  const cx = classNames(classes)
   const commandInputRef = useRef<HTMLInputElement>(null)
   const [historyPointer, setHistoryPointer] = useState(-1)
   // What was typed before the first Up, so the recall stays filtered on it while
@@ -569,13 +549,13 @@ const CommandInput = ({
   }
 
   return (
-    <form onSubmit={handleFormSubmit} className={cx('inputForm')}>
-      <span className={cx('prompt')}>{prompt}</span>
+    <form onSubmit={handleFormSubmit} className={styles.inputForm}>
+      <span className={styles.prompt}>{prompt}</span>
       <input
         autoFocus
         aria-label="command"
         ref={commandInputRef}
-        className={cx('cursor')}
+        className={styles.cursor}
         onKeyDown={handleKeyDown}
         // Typing anything ends the current walk, so the next Up filters again.
         onChange={() => setHistoryPointer(-1)}
@@ -601,7 +581,8 @@ export type TerminalProps = {
   prompt?: string
   welcome?: string
   cursor?: TerminalCursor
-  classes?: TerminalClasses
+  theme?: TerminalTheme
+  size?: TerminalSize
 }
 
 export const Terminal = ({
@@ -609,18 +590,28 @@ export const Terminal = ({
   prompt = DEFAULT_PROMPT,
   welcome,
   cursor = {},
-  classes,
+  theme = {},
+  size = {},
 }: TerminalProps) => {
-  const cx = classNames(classes)
-
   const { shape = DEFAULT_CURSOR_SHAPE, blink = true } = cursor
 
-  // Set on the terminal box, not on the input: custom properties inherit, so
-  // .cursor picks them up without threading two more props down. The cast is
-  // needed because CSSProperties has no index signature for custom properties.
-  const cursorVars = {
+  // Everything about the look is a custom property on the terminal box. They
+  // inherit, so the parts deeper in pick them up without any prop threading,
+  // and an undefined one is left out, which hands the choice to the var()
+  // fallback in the CSS. The cast is needed because CSSProperties has no index
+  // signature for custom properties.
+  const cssVars = {
     '--kanza-caret-shape': shape,
     '--kanza-caret-animation': blink ? 'auto' : 'manual',
+    '--kanza-width': size.width,
+    '--kanza-height': size.height,
+    '--kanza-background': theme.background,
+    '--kanza-foreground': theme.foreground,
+    '--kanza-prompt-color': theme.promptColor,
+    '--kanza-response-color': theme.responseColor,
+    '--kanza-font-family': theme.fontFamily,
+    '--kanza-font-size': theme.fontSize,
+    '--kanza-padding': theme.padding,
   } as CSSProperties
 
   const { history, pushToHistory, replaceResponse } = useTerminalHistory(prompt)
@@ -690,7 +681,7 @@ export const Terminal = ({
 
       if (!input) {
         return {
-          response: <Help commands={virtualCommands} classes={classes} />,
+          response: <Help commands={virtualCommands} />,
         }
       }
 
@@ -700,9 +691,7 @@ export const Terminal = ({
       if (!wanted.help) return { response: `No help for "${input}"` }
 
       return {
-        response: (
-          <Help commands={{ [input]: wanted }} heading="" classes={classes} />
-        ),
+        response: <Help commands={{ [input]: wanted }} heading="" />,
       }
     }
 
@@ -729,7 +718,7 @@ export const Terminal = ({
 
     if (isPromise(response)) {
       const running: RunningCommand = {
-        id: pushToHistory(trimmed, <Pending classes={classes} />),
+        id: pushToHistory(trimmed, <Pending />),
         cancelled: false,
       }
       runningRef.current = running
@@ -770,25 +759,24 @@ export const Terminal = ({
         if (screen) return
         e.currentTarget.querySelector('input')?.focus()
       }}
-      className={cx('terminal')}
-      style={cursorVars}
+      className={styles.terminal}
+      style={cssVars}
     >
       {screen ? (
-        <div className={cx('screen')}>{screen}</div>
+        <div className={styles.screen}>{screen}</div>
       ) : (
         <>
           {welcome && !hasCleared && (
-            <div className={cx('welcome')}>{welcome}</div>
+            <div className={styles.welcome}>{welcome}</div>
           )}
-          <HistoryList history={visibleHistory} classes={classes} />
+          <HistoryList history={visibleHistory} />
           <CommandInput
             onSubmitCommand={handleCommand}
             onCancel={handleCancel}
             history={history}
             prompt={prompt}
-            classes={classes}
           />
-          <div ref={bottomRef} className={cx('scrollAnchor')} />
+          <div ref={bottomRef} />
         </>
       )}
     </div>
