@@ -6,8 +6,8 @@ A terminal in a React component. You bring the commands.
 
 ## Replikateur?
 
-German and French for "replicator", the Star Trek machine that makes what you
-ask it for. You type a command, something appears.
+A replicator: the Star Trek machine that makes what you ask it for. You give a
+command, and something tasty appears.
 
 ## Getting started
 
